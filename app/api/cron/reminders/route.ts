@@ -59,6 +59,20 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
+  // Kill switch — flip system_flags.cron_reminders.enabled=false to stop cron instantly.
+  const { data: flag } = await supabase
+    .from("system_flags")
+    .select("enabled")
+    .eq("key", "cron_reminders")
+    .single();
+
+  if (!flag?.enabled) {
+    return NextResponse.json({ skipped: "cron_reminders disabled" });
+  }
+
+  // Dry-run mode — set DRY_RUN=true in Vercel env to test without sending emails.
+  const dryRun = process.env.DRY_RUN === "true";
+
   const { data: invoices, error } = await supabase
     .from("invoices")
     .select("id, user_id, client_name, client_email, due_date, subtotal, late_fee, total, status, last_reminder_stage")
@@ -120,39 +134,58 @@ export async function GET(request: Request) {
       }
     }
 
-    await sendEmail({
-      to: invoice.client_email,
-      subject: reminderSubject(stage),
-      html: reminderHtml(stage, invoiceForEmail),
-    });
-
-    const { error: logError } = await supabase
-      .from("reminder_logs")
-      .insert({ invoice_id: invoice.id, stage });
-
-    if (logError) {
-      return NextResponse.json({ error: logError.message }, { status: 500 });
+    if (dryRun) {
+      console.log(`[dry-run] Would send stage ${stage} to ${invoice.client_email} for invoice ${invoice.id}`);
+      processed += 1;
+      continue;
     }
 
-    const updates: { last_reminder_stage: ReminderStage; status?: "overdue" } = {
-      last_reminder_stage: stage,
-    };
+    // Wrap real send + logs in try/catch so one bad invoice doesn't kill the whole batch.
+    try {
+      await sendEmail({
+        to: invoice.client_email,
+        subject: reminderSubject(stage),
+        html: reminderHtml(stage, invoiceForEmail),
+      });
 
-    if (daysOverdue >= 14) {
-      updates.status = "overdue";
+      await supabase
+        .from("reminder_logs")
+        .insert({ invoice_id: invoice.id, stage });
+
+      const updates: { last_reminder_stage: ReminderStage; status?: "overdue" } = {
+        last_reminder_stage: stage,
+      };
+
+      if (daysOverdue >= 14) {
+        updates.status = "overdue";
+      }
+
+      await supabase
+        .from("invoices")
+        .update(updates)
+        .eq("id", invoice.id);
+
+      await supabase.from("events").insert({
+        user_id: invoice.user_id,
+        kind: "reminder.sent",
+        payload: { invoice_id: invoice.id, stage, client_email: invoice.client_email },
+      });
+
+      processed += 1;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      await supabase.from("events").insert({
+        user_id: invoice.user_id,
+        kind: "error.caught",
+        payload: { where: "cron.reminders", invoice_id: invoice.id, stage, message },
+      });
     }
-
-    const { error: updateError } = await supabase
-      .from("invoices")
-      .update(updates)
-      .eq("id", invoice.id);
-
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
-    }
-
-    processed += 1;
   }
 
-  return NextResponse.json({ processed });
+  await supabase.from("events").insert({
+    kind: "cron.ran",
+    payload: { processed, dryRun },
+  });
+
+  return NextResponse.json({ processed, dryRun });
 }

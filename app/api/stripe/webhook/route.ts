@@ -26,20 +26,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+
+  // Idempotency guard — Stripe retries on our errors. If we've seen this event_id, skip.
+  const { error: idempError } = await supabase
+    .from("stripe_webhook_events")
+    .insert({ event_id: event.id });
+
+  if (idempError) {
+    // Duplicate primary key = already processed. Return 200 so Stripe stops retrying.
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const invoiceId = session.metadata?.invoice_id;
 
     if (invoiceId) {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      );
-
       await supabase
         .from("invoices")
-        .update({ status: "paid" })
+        .update({ status: "paid", paid_at: new Date().toISOString() })
         .eq("id", invoiceId);
+
+      await supabase.from("events").insert({
+        kind: "invoice.paid",
+        payload: { invoice_id: invoiceId, stripe_session_id: session.id, amount_total: session.amount_total },
+      });
     }
   }
 
