@@ -2,26 +2,253 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Redline design tokens */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --graphite-900: #08090b;
+  --graphite-800: #0c0d11;
+  --graphite-700: #111217;
+  --graphite-600: #16181f;
+  --graphite-500: #1c1f27;
+  --graphite-400: #242731;
+
+  /* Ink */
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #e7e2d9;
+  --ash: #9a9a9a;
+  --ash-dim: #6b6b6e;
+  --ash-deep: #4a4a4e;
+
+  /* Brand */
+  --red-deep: #9b1c1f;
+  --red: #ff4b3e;
+  --red-hot: #ff6a5a;
+  --red-glow: rgba(255, 58, 48, 0.22);
+  --red-glow-strong: rgba(255, 58, 48, 0.38);
+  --red-wash: rgba(255, 75, 62, 0.08);
+
+  /* Hairlines */
+  --hair: rgba(255, 255, 255, 0.08);
+  --hair-strong: rgba(255, 255, 255, 0.12);
+  --hair-soft: rgba(255, 255, 255, 0.05);
+
+  /* Status */
+  --ok: #7ec08a;
+  --amber: #e8c07c;
+
+  /* Type */
+  --font-sans: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-serif: "Instrument Serif", "Times New Roman", serif;
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+  --shadow-red: 0 0 0 1px rgba(255, 75, 62, 0.35) inset, 0 10px 40px -10px rgba(255, 58, 48, 0.5), 0 0 0 6px rgba(255, 75, 62, 0.06);
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 40px 80px -40px rgba(0, 0, 0, 0.9);
+
+  /* Easing */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11", "calt";
+  letter-spacing: -0.01em;
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--red-glow-strong);
+  color: var(--warm-white);
+}
+
+/* Noise */
+.rl-noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.035;
+  mix-blend-mode: screen;
+  z-index: 1;
+}
+
+/* Hairline utility */
+.rl-hairline {
+  border: 1px solid var(--hair);
+}
+.rl-hairline-t { border-top: 1px solid var(--hair); }
+.rl-hairline-b { border-bottom: 1px solid var(--hair); }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  border: 2px solid var(--graphite-900);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes rl-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@keyframes rl-breathe {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+@keyframes rl-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rl-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes rl-sweep {
+  0% { transform: translateX(-30%) rotate(-8deg); opacity: 0; }
+  20% { opacity: 0.6; }
+  80% { opacity: 0.6; }
+  100% { transform: translateX(30%) rotate(-8deg); opacity: 0; }
+}
+@keyframes rl-ring {
+  0% { box-shadow: 0 0 0 0 rgba(255, 75, 62, 0.5); }
+  100% { box-shadow: 0 0 0 10px rgba(255, 75, 62, 0); }
+}
+@keyframes rl-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes rl-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .text-balance { text-wrap: balance; }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+@media (max-width: 980px) {
+  .hero-grid,
+  .product-grid,
+  .seq-grid,
+  .how-grid,
+  .pricing-grid,
+  .login-grid,
+  .dash-grid,
+  .new-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  nav {
+    display: none !important;
+  }
+}
+
+@media (max-width: 880px) {
+  .login-grid > div:nth-child(2) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 780px) {
+  .dashboard-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-shell aside {
+    display: none !important;
+  }
+
+  .dashboard-shell main {
+    padding-bottom: 40px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cli-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .line-head {
+    display: none !important;
+  }
+
+  .line-row {
+    grid-template-columns: 1fr 60px 110px !important;
+    grid-template-rows: auto auto;
+  }
+
+  .line-row > *:nth-child(4) {
+    grid-column: span 3;
+    text-align: right;
+    border-top: 1px solid var(--hair-soft);
+    padding-top: 6px !important;
+  }
+
+  .line-row > *:nth-child(5) {
+    display: none;
   }
 }

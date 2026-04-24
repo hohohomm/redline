@@ -1,18 +1,22 @@
-// Placeholder dashboard page. Week 5 replaces this with real stats.
-import { createClient } from "@/lib/supabase/server";
+"use client";
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  const email = data.user?.email ?? "unknown";
+import { useRouter } from "next/navigation";
+
+import { DashboardHome, DashboardShell } from "@/components/redline-prototype";
+
+export default function DashboardPage() {
+  const router = useRouter();
+
+  function navigate(route: string) {
+    if (route === "landing") router.push("/");
+    if (route === "login") router.push("/login");
+    if (route === "dashboard") router.push("/dashboard");
+    if (route === "new") router.push("/dashboard/invoices/new");
+  }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      <p className="text-gray-600">Signed in as {email}</p>
-      <p className="text-sm text-gray-400">
-        (Week 1 placeholder — invoice list comes in Week 5.)
-      </p>
-    </main>
+    <DashboardShell route="dashboard" onNav={navigate}>
+      <DashboardHome onNav={navigate} />
+    </DashboardShell>
   );
 }
