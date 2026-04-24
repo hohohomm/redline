@@ -1,8 +1,15 @@
 # invoiceapp — Repo Rules
 
-These rules apply to Claude, Codex, or any agent working in this repo.
+Both Claude and Codex read this when working inside this repo.
 
-## Scope lock
+## Read first (universal rules)
+
+- `~/knowledge-base/core/code-style.md`
+- `~/knowledge-base/core/agent-rules.md`
+- `~/knowledge-base/projects/invoiceapp/overview.md`
+- This file (project-specific overrides below)
+
+## Scope lock (this repo only)
 
 ALLOWED to touch:
 - `lib/**`, `app/**`, `components/**`, `types/**`, `supabase/migrations/**`, `middleware.ts`, `vercel.json`, `package.json`, `scripts/**`
@@ -10,31 +17,6 @@ ALLOWED to touch:
 NEVER touch:
 - `node_modules`, `.next`, `.env.local`, `.git`
 - Any file outside this repo
-
-## Code style
-
-- Write code a smart 6-year-old could follow. No exceptions.
-- Obvious variable names. Flat structure. Plain-English comments only where the WHY is not obvious.
-- Never write comments that describe WHAT code does — well-named code already does that.
-- No clever one-liners. Split complex things into readable steps.
-- No nested function hierarchies. Sequential and flat wins.
-- No type hints or docstrings on code you didn't change.
-
-## What NOT to do
-
-- NEVER add code beyond exactly what the task asks. No bonus features.
-- No extra error handling for cases that cannot happen.
-- No abstractions built for hypothetical future use.
-- No premature optimization.
-
-## Workflow
-
-1. List files you will create or edit BEFORE writing code.
-2. Write the code.
-3. Run `npx tsc --noEmit`. Fix any errors.
-4. Summary in 5 bullets or fewer.
-
-Do NOT run `npm run build`. Do NOT run `next dev`. User will test manually.
 
 ## Stack (locked — do not change)
 
@@ -50,3 +32,7 @@ See `.env.local.example`. Local values live in `.env.local` (gitignored). Produc
 - Every table has Row Level Security ON.
 - Every policy restricts rows to `auth.uid() = user_id` or equivalent.
 - Run migrations manually in the Supabase SQL editor — do not auto-apply.
+
+## Weekly build prompts
+
+Per-week tasks live in `~/knowledge-base/projects/invoiceapp/weekly-prompts/weekN.md`. Paste the relevant one into the agent session.
