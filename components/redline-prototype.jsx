@@ -635,6 +635,7 @@ const ReminderTimeline = ({ step = 0, compact = false }) => {
 // ProductPreview — the interactive invoice card on the landing page.
 // Click "Send reminder" to advance the timeline. Click "Mark paid" to resolve.
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ProductPreview = () => {
   const [step, setStep] = React.useState(1);
   const [marking, setMarking] = React.useState(false);
@@ -1134,7 +1135,7 @@ const HeroSection = ({ onNav }) => {
             <Button variant="primary" size="lg" onClick={() => onNav("login")} iconRight={<Icon.arrow s={14} />}>
               Send your first invoice
             </Button>
-            <Button variant="secondary" size="lg" onClick={() => onNav("dashboard")}>
+            <Button variant="secondary" size="lg" onClick={() => onNav("login")}>
               See the dashboard
             </Button>
           </div>
@@ -1300,7 +1301,7 @@ const MockSendCard = () => (
       </span>
     </div>
     <div style={{ fontSize: 13, color: "var(--warm-white-dim)", letterSpacing: "-0.01em", marginBottom: 10 }}>
-      Here's the invoice for Phase 2. Link below pays in one tap.
+      Here&apos;s the invoice for Phase 2. Link below pays in one tap.
     </div>
     <div
       style={{
@@ -1397,7 +1398,7 @@ const SequenceDeepDive = () => {
             Friendly first. Firmer later.
           </h2>
           <p style={{ fontSize: 15.5, color: "var(--ash)", lineHeight: 1.6, margin: 0, marginBottom: 26, letterSpacing: "-0.005em" }}>
-            Redline's default escalation is calibrated on hundreds of real invoice threads.
+            Redline&apos;s default escalation is calibrated on hundreds of real invoice threads.
             You can override any step, pause the sequence with one tap, or write your own voice.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1640,13 +1641,18 @@ const FinalCta = ({ onNav }) => (
         <Button variant="primary" size="lg" onClick={() => onNav("login")} iconRight={<Icon.arrow s={14} />}>
           Start free
         </Button>
-        <Button variant="secondary" size="lg" onClick={() => onNav("dashboard")}>
+        <Button variant="secondary" size="lg" onClick={() => onNav("login")}>
           See the dashboard
         </Button>
       </div>
     </div>
   </section>
 );
+
+const footerLinkStyle = {
+  color: "inherit",
+  textDecoration: "none",
+};
 
 const LandingFooter = () => (
   <footer style={{ borderTop: "1px solid var(--hair)", padding: "28px", background: "rgba(8,9,11,0.6)" }}>
@@ -1665,11 +1671,10 @@ const LandingFooter = () => (
     >
       <WordMark size={14} />
       <div style={{ display: "flex", gap: 22 }}>
-        <a>Privacy</a>
-        <a>Terms</a>
-        <a>Security</a>
-        <a>Status</a>
-        <a>hello@redline.app</a>
+        <a href="/contact" style={footerLinkStyle}>Contact</a>
+        <a style={footerLinkStyle}>Privacy</a>
+        <a style={footerLinkStyle}>Terms</a>
+        <a href="mailto:support@redlineinvoices.com" style={footerLinkStyle}>support@redlineinvoices.com</a>
       </div>
       <div>© 2026 Redline Labs</div>
     </div>
@@ -1701,6 +1706,31 @@ const LoginPage = ({ onNav }) => {
   const [state, setState] = React.useState("idle"); // idle | sending | sent | error
   const [error, setError] = React.useState("");
 
+  React.useEffect(() => {
+    let active = true;
+    const supabase = createClient();
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("error") === "auth") {
+      setError("Sign-in link expired or could not be verified. Send a new link.");
+      setState("error");
+    }
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (active && data.user) {
+        onNav("dashboard");
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [onNav]);
+
+  const getRedirectUrl = () => {
+    return `${window.location.origin}/auth/callback?next=/dashboard`;
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
@@ -1711,10 +1741,9 @@ const LoginPage = ({ onNav }) => {
     }
     setState("sending");
     const supabase = createClient();
-    const redirectUrl = `${window.location.origin}/auth/callback`;
     const { error: authError } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectUrl },
+      options: { emailRedirectTo: getRedirectUrl() },
     });
 
     if (authError) {
@@ -1724,6 +1753,21 @@ const LoginPage = ({ onNav }) => {
     }
 
     setState("sent");
+  };
+
+  const signInWithGoogle = async () => {
+    setError("");
+    setState("sending");
+    const supabase = createClient();
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: getRedirectUrl() },
+    });
+
+    if (authError) {
+      setError(authError.message);
+      setState("error");
+    }
   };
 
   return (
@@ -1781,7 +1825,7 @@ const LoginPage = ({ onNav }) => {
                 Welcome back.
               </h1>
               <p style={{ fontSize: 14.5, color: "var(--ash)", margin: 0, marginBottom: 30, lineHeight: 1.55, letterSpacing: "-0.005em" }}>
-                Enter your email. We'll send a one-time sign-in link — no password.
+                Enter your email. We&apos;ll send a one-time sign-in link — no password.
               </p>
 
               <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1823,7 +1867,8 @@ const LoginPage = ({ onNav }) => {
                   width: "100%",
                   transition: "background 180ms var(--ease-out)",
                 }}
-                onClick={() => onNav("dashboard")}
+                onClick={signInWithGoogle}
+                disabled={state === "sending"}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15h-2v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" fill="#fff" opacity="0.6"/>
@@ -1878,7 +1923,7 @@ const LoginPage = ({ onNav }) => {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <Button variant="primary" size="lg" full onClick={() => onNav("dashboard")} iconRight={<Icon.arrow s={14} />}>
-                  Continue to dashboard (demo)
+                  Open dashboard after sign-in
                 </Button>
                 <Button variant="ghost" size="md" onClick={() => { setState("idle"); setEmail(""); }}>
                   Use a different email
@@ -1970,8 +2015,8 @@ const LoginPage = ({ onNav }) => {
                 marginBottom: 22,
               }}
             >
-              "You send once. I'll do the awkward part — making sure it actually gets paid.
-              Calm. Friendly first. Firmer when it's time."
+              &quot;You send once. I&apos;ll do the awkward part — making sure it actually gets paid.
+              Calm. Friendly first. Firmer when it&apos;s time.&quot;
             </blockquote>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <OperatorBadge size={36} status="working" />
@@ -2011,6 +2056,9 @@ const DashboardShell = ({ route, onNav, children }) => {
     dashboard: "/dashboard",
     invoices: "/dashboard/invoices",
     new: "/dashboard/invoices/new",
+    clients: "/dashboard/clients",
+    sequences: "/dashboard/sequences",
+    cashflow: "/dashboard/cashflow",
     settings: "/dashboard/settings",
   };
 
@@ -2077,9 +2125,9 @@ const DashboardShell = ({ route, onNav, children }) => {
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <NavItem id="dashboard" icon={<Icon.home s={14} />} label="Overview" active={route === "dashboard"} />
           <NavItem id="invoices" icon={<Icon.doc s={14} />} label="Invoices" active={route === "invoices"} />
-          <NavItem id="dashboard" icon={<Icon.user s={14} />} label="Clients" />
-          <NavItem id="dashboard" icon={<Icon.bell s={14} />} label="Sequences" />
-          <NavItem id="dashboard" icon={<Icon.trend s={14} />} label="Cashflow" />
+          <NavItem id="clients" icon={<Icon.user s={14} />} label="Clients" active={route === "clients"} />
+          <NavItem id="sequences" icon={<Icon.bell s={14} />} label="Sequences" active={route === "sequences"} />
+          <NavItem id="cashflow" icon={<Icon.trend s={14} />} label="Cashflow" active={route === "cashflow"} />
         </div>
 
         <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
@@ -2297,7 +2345,7 @@ const DashboardHome = ({ invoices = [] }) => {
           <OperatorBadge size={40} status="working" />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, color: "var(--warm-white)", letterSpacing: "-0.01em", marginBottom: 2 }}>
-              Morning. <span style={{ color: "var(--ash)" }}>2 invoices went overdue overnight. I'm sending the firmer nudge to Harbor Studio at 10:00 — edit if you want a softer tone.</span>
+              Morning. <span style={{ color: "var(--ash)" }}>2 invoices went overdue overnight. I&apos;m sending the firmer nudge to Harbor Studio at 10:00 — edit if you want a softer tone.</span>
             </div>
             <div style={{ fontSize: 11.5, color: "var(--ash-dim)", fontFamily: "var(--font-mono)", letterSpacing: 0 }}>
               rei · 8:14 am
@@ -2415,7 +2463,7 @@ const DashboardHome = ({ invoices = [] }) => {
 
             <Panel>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 500, letterSpacing: "-0.01em" }}>What's sending next</span>
+                <span style={{ fontSize: 13.5, fontWeight: 500, letterSpacing: "-0.01em" }}>What&apos;s sending next</span>
                 <OperatorBadge size={18} status="working" />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -2503,6 +2551,7 @@ const NewInvoicePage = ({ onNav }) => {
     { id: 2, desc: "", qty: 1, unit: 0 },
   ]);
   const [tone, setTone] = React.useState("friendly");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sequence, setSequence] = React.useState("default");
   const [lateFee, setLateFee] = React.useState(true);
   const [sent, setSent] = React.useState(false);
@@ -2577,7 +2626,7 @@ const NewInvoicePage = ({ onNav }) => {
         </h1>
         <p style={{ fontSize: 14.5, color: "var(--ash)", lineHeight: 1.55, margin: 0, marginBottom: 24 }}>
           <span style={{ color: "var(--warm-white-dim)" }}>{client}</span> has the payment link.
-          Rei will send the first nudge on day 6 if it's still open.
+          Rei will send the first nudge on day 6 if it&apos;s still open.
         </p>
         <div style={{ display: "inline-flex", gap: 10 }}>
           <Button variant="primary" size="md" onClick={() => onNav("dashboard")} iconRight={<Icon.arrow s={13} />}>
@@ -2684,7 +2733,7 @@ const NewInvoicePage = ({ onNav }) => {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {lines.map((l, i) => (
+              {lines.map((l) => (
                 <div
                   key={l.id}
                   style={{
@@ -2944,7 +2993,7 @@ const NewInvoicePage = ({ onNav }) => {
                 <BrandMark size={28} />
               </div>
               <div style={{ fontSize: 13, marginBottom: 16, letterSpacing: "-0.005em" }}>
-                Hey {client || "—"}, here's the invoice for this month. Link below pays in one tap.
+                Hey {client || "—"}, here&apos;s the invoice for this month. Link below pays in one tap.
               </div>
               <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 8, overflow: "hidden", marginBottom: 16 }}>
                 {lines.filter(l => l.desc).map((l, i) => (
@@ -2996,7 +3045,7 @@ const NewInvoicePage = ({ onNav }) => {
           >
             <OperatorBadge size={24} status="working" />
             <div style={{ fontSize: 12, color: "var(--ash)", lineHeight: 1.5, letterSpacing: "-0.005em" }}>
-              If this stays open past <span style={{ color: "var(--warm-white-dim)" }}>{due}</span>, I'll send a
+              If this stays open past <span style={{ color: "var(--warm-white-dim)" }}>{due}</span>, I&apos;ll send a
               {" "}<span style={{ color: "#ff7468" }}>{tone}</span>{" "}nudge on day 6, escalate to firmer on day 13,
               and apply late fee after day 15.
             </div>
