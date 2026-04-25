@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Dashboard | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: #1a1a2e;
+  display: flex; align-items: center; justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  padding: 24px;
+  min-height: 100vh;
+}
+/* Phone shell */
+.phone {
+  width: 390px; height: 844px;
+  background: var(--graphite-900);
+  border-radius: 44px; overflow: hidden;
+  border: 1.5px solid #2a2c33;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  position: relative; display: flex; flex-direction: column;
+  flex-shrink: 0;
+}
+.phone-notch {
+  width: 120px; height: 34px; background: #000;
+  border-radius: 0 0 20px 20px; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  z-index: 20;
+}
+.phone-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; scrollbar-width: none; }
+.phone-content::-webkit-scrollbar { display: none; }
+/* Top bar */
+.top-bar {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(8,9,11,0.92); backdrop-filter: blur(12px);
+  padding: 48px 20px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--hair);
+}
+.top-logo { display: flex; align-items: center; gap: 8px; }
+.top-logo img { width: 28px; height: 28px; border-radius: 8px; }
+.top-logo span { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: var(--warm-white); }
+.bell-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--graphite-600); border: 1px solid var(--hair);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; font-size: 15px;
+}
+.bell-dot { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--redline); border: 1.5px solid var(--graphite-900); }
+/* Greeting */
+.greeting { padding: 22px 20px 0; }
+.greeting .hey { font-size: 13px; color: var(--ash-dim); margin-bottom: 3px; }
+.greeting h1 { font-size: 24px; font-weight: 500; letter-spacing: -0.035em; color: var(--warm-white); margin-bottom: 2px; }
+.greeting .outstanding { font-size: 13px; color: var(--ash); }
+.greeting .outstanding strong { color: var(--redline); font-variant-numeric: tabular-nums; }
+/* Primary overdue card */
+.overdue-card {
+  margin: 16px 16px 0;
+  background: linear-gradient(135deg, #140b0a 0%, #1a0e0d 100%);
+  border: 1px solid rgba(255,75,62,0.25); border-radius: 18px; padding: 18px;
+  position: relative; overflow: hidden;
+}
+.overdue-card::before {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(255,75,62,0.12) 0%, transparent 70%);
+}
+.oc-label { font-size: 11px; font-weight: 600; color: var(--redline); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.oc-label::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--redline); animation: pulse 1.8s ease-in-out infinite; }
+.oc-client { font-size: 16px; font-weight: 600; color: var(--warm-white); margin-bottom: 2px; }
+.oc-inv { font-size: 13px; color: var(--ash-dim); margin-bottom: 12px; }
+.oc-amount { font-size: 28px; font-weight: 500; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--warm-white); margin-bottom: 14px; }
+.oc-amount span { font-size: 14px; color: var(--ash); margin-right: 3px; font-weight: 400; }
+.oc-actions { display: flex; gap: 8px; }
+.oc-btn { flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; text-align: center; }
+.oc-nudge { background: var(--redline); color: #fff; }
+.oc-view { background: rgba(255,255,255,0.07); color: var(--warm-white-dim); border: 1px solid var(--hair); }
+/* Stat row */
+.stat-strip { display: flex; gap: 10px; padding: 14px 16px 0; }
+.stat-pill { flex: 1; background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 12px; padding: 12px 14px; }
+.sp-label { font-size: 10px; color: var(--ash-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; font-weight: 600; }
+.sp-val { font-size: 18px; font-weight: 500; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+/* Recent invoices */
+.section-header { padding: 18px 20px 8px; display: flex; align-items: center; justify-content: space-between; }
+.section-header h2 { font-size: 15px; font-weight: 600; color: var(--warm-white-dim); letter-spacing: -0.02em; }
+.section-header a { font-size: 13px; color: var(--ash); text-decoration: none; }
+.inv-list { padding: 0 16px; }
+.inv-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 12px; margin-bottom: 8px; }
+.inv-init { width: 34px; height: 34px; border-radius: 9px; background: var(--graphite-600); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--ash); flex-shrink: 0; }
+.inv-info { flex: 1; min-width: 0; }
+.inv-name { font-size: 13px; font-weight: 500; color: var(--warm-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-sub { font-size: 11px; color: var(--ash-dim); margin-top: 1px; }
+.inv-right { text-align: right; flex-shrink: 0; }
+.inv-amt { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.chip { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; margin-top: 2px; }
+.chip-overdue { background: rgba(255,75,62,0.15); color: var(--redline); }
+.chip-paid { background: rgba(46,194,126,0.12); color: #2ec27e; }
+.chip-sent { background: rgba(107,166,255,0.12); color: #6ba6ff; }
+/* Bottom tab bar */
+.tab-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 80px; background: rgba(8,9,11,0.96); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--hair);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 12px; z-index: 10;
+}
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; flex: 1; }
+.tab-icon { font-size: 20px; }
+.tab-label { font-size: 10px; font-weight: 500; color: var(--ash-dim); }
+.tab-item.active .tab-label { color: var(--redline); }
+.tab-item.active .tab-icon { filter: drop-shadow(0 0 4px rgba(255,75,62,0.4)); }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="phone-notch"></div>
+  <div class="phone-content">
+    <!-- Top bar -->
+    <div class="top-bar">
+      <div class="top-logo">
+        <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+        <span>Redline</span>
+      </div>
+      <div class="bell-btn">🔔<div class="bell-dot"></div></div>
+    </div>
+
+    <!-- Greeting -->
+    <div class="greeting">
+      <div class="hey">Good morning</div>
+      <h1>Phillip 👋</h1>
+      <div class="outstanding">You have <strong>$12,400</strong> outstanding across 3 invoices.</div>
+    </div>
+
+    <!-- Overdue card -->
+    <div class="overdue-card">
+      <div class="oc-label">Most overdue</div>
+      <div class="oc-client">Acme Corp</div>
+      <div class="oc-inv">INV-1024 · Due 11 Apr · 14 days late</div>
+      <div class="oc-amount"><span>AUD</span>$4,250.00</div>
+      <div class="oc-actions">
+        <button class="oc-btn oc-nudge">📣 Send nudge</button>
+        <button class="oc-btn oc-view">View →</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-strip">
+      <div class="stat-pill">
+        <div class="sp-label">Outstanding</div>
+        <div class="sp-val" style="color:var(--redline);">$12,400</div>
+      </div>
+      <div class="stat-pill">
+        <div class="sp-label">Paid MTD</div>
+        <div class="sp-val" style="color:#2ec27e;">$7,900</div>
+      </div>
+      <div class="stat-pill">
+        <div class="sp-label">Overdue</div>
+        <div class="sp-val" style="color:var(--redline);">2</div>
+      </div>
+    </div>
+
+    <!-- Recent invoices -->
+    <div class="section-header">
+      <h2>Recent invoices</h2>
+      <a href="#">See all</a>
+    </div>
+    <div class="inv-list">
+      <div class="inv-row">
+        <div class="inv-init">A</div>
+        <div class="inv-info">
+          <div class="inv-name">Acme Corp</div>
+          <div class="inv-sub">INV-1024 · 28 Mar</div>
+        </div>
+        <div class="inv-right">
+          <div class="inv-amt" style="color:var(--redline);">$4,250</div>
+          <div class="chip chip-overdue">Overdue</div>
+        </div>
+      </div>
+      <div class="inv-row">
+        <div class="inv-init">B</div>
+        <div class="inv-info">
+          <div class="inv-name">Bob's Plumbing</div>
+          <div class="inv-sub">INV-1023 · 14 Apr</div>
+        </div>
+        <div class="inv-right">
+          <div class="inv-amt" style="color:var(--redline);">$2,300</div>
+          <div class="chip chip-overdue">Overdue</div>
+        </div>
+      </div>
+      <div class="inv-row">
+        <div class="inv-init">C</div>
+        <div class="inv-info">
+          <div class="inv-name">Coastal Builders</div>
+          <div class="inv-sub">INV-1022 · 18 Apr</div>
+        </div>
+        <div class="inv-right">
+          <div class="inv-amt" style="color:var(--ash);">$5,850</div>
+          <div class="chip chip-sent">Sent</div>
+        </div>
+      </div>
+      <div class="inv-row">
+        <div class="inv-init">S</div>
+        <div class="inv-info">
+          <div class="inv-name">Sunrise Media</div>
+          <div class="inv-sub">INV-1021 · 20 Apr</div>
+        </div>
+        <div class="inv-right">
+          <div class="inv-amt" style="color:#2ec27e;">$6,100</div>
+          <div class="chip chip-paid">Paid</div>
+        </div>
+      </div>
+      <div class="inv-row">
+        <div class="inv-init">H</div>
+        <div class="inv-info">
+          <div class="inv-name">Harper Design Co.</div>
+          <div class="inv-sub">INV-1020 · 24 Apr</div>
+        </div>
+        <div class="inv-right">
+          <div class="inv-amt" style="color:#2ec27e;">$1,800</div>
+          <div class="chip chip-paid">Paid</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <div class="tab-icon">🏠</div>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon">📄</div>
+      <div class="tab-label">Invoices</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon">👥</div>
+      <div class="tab-label">Clients</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon">⚙️</div>
+      <div class="tab-label">Settings</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

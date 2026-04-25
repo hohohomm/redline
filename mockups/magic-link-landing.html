@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pay Invoice | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --redline-glow: rgba(255,75,62,0.6);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+.ambient-pre {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,75,62,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.ambient-paid {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(46,194,126,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+/* State toggle */
+.state { display: none; flex: 1; }
+.state.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; min-height: 100vh; position: relative; z-index: 1; }
+/* Shared */
+.logo-top { margin-bottom: 48px; text-align: center; }
+.logo-top img { width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--hair); }
+.logo-top .biz { font-size: 14px; font-weight: 600; color: var(--warm-white); margin-top: 10px; letter-spacing: -0.02em; }
+.inner { width: 100%; max-width: 440px; text-align: center; }
+/* Pre-pay state */
+.spinner-wrap { margin-bottom: 24px; }
+.spinner {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 3px solid var(--hair);
+  border-top-color: var(--redline);
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.pre-title { font-size: 20px; font-weight: 500; letter-spacing: -0.03em; margin-bottom: 8px; }
+.pre-sub { font-size: 14px; color: var(--ash); line-height: 1.6; margin-bottom: 28px; }
+.pre-card {
+  background: var(--graphite-700); border: 1px solid var(--hair);
+  border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; text-align: left;
+}
+.pre-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; }
+.pre-row .k { color: var(--ash); }
+.pre-row .v { color: var(--warm-white-dim); font-variant-numeric: tabular-nums; }
+.pre-row.total .k { color: var(--warm-white); font-weight: 600; font-size: 15px; }
+.pre-row.total .v { color: var(--warm-white); font-weight: 600; font-size: 15px; }
+.pre-note { font-size: 12px; color: var(--ash-dim); }
+/* Post-pay state */
+.checkmark-wrap { margin-bottom: 24px; position: relative; }
+.checkmark-circle {
+  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto;
+  background: rgba(46,194,126,0.1); border: 2px solid rgba(46,194,126,0.3);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(46,194,126,0.15);
+}
+.checkmark-circle svg { display: block; }
+.paid-title { font-size: 26px; font-weight: 500; letter-spacing: -0.035em; margin-bottom: 8px; }
+.paid-sub { font-size: 15px; color: var(--ash); margin-bottom: 28px; line-height: 1.6; }
+.receipt-card {
+  background: var(--graphite-700); border: 1px solid var(--hair);
+  border-radius: 14px; padding: 20px 24px; text-align: left; margin-bottom: 24px;
+}
+.receipt-title { font-size: 12px; font-weight: 600; color: var(--ash-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+.receipt-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--hair); }
+.receipt-row:last-child { border-bottom: none; }
+.receipt-row .k { color: var(--ash); }
+.receipt-row .v { color: var(--warm-white-dim); font-variant-numeric: tabular-nums; }
+.receipt-row.amount .v { color: #2ec27e; font-weight: 600; font-size: 15px; }
+.email-note {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  font-size: 13px; color: var(--ash-dim); margin-bottom: 28px;
+}
+.email-note .icon { font-size: 16px; }
+.btn-home { display: inline-block; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none; color: var(--warm-white); border: 1px solid var(--hair-strong); transition: border-color 0.15s, background 0.15s; }
+.btn-home:hover { border-color: var(--ash); background: rgba(255,255,255,0.04); }
+/* Toggle nav */
+.demo-toggle {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 0; background: var(--graphite-700); border: 1px solid var(--hair);
+  border-radius: 999px; overflow: hidden; z-index: 100;
+}
+.demo-btn { padding: 8px 18px; font-size: 12px; font-weight: 600; color: var(--ash); cursor: pointer; border: none; background: none; transition: all 0.15s; }
+.demo-btn.active { background: var(--graphite-600); color: var(--warm-white); }
+footer.foot { position: relative; z-index: 1; text-align: center; padding: 20px; font-size: 12px; color: var(--ash-dim); }
+</style>
+</head>
+<body>
+
+<!-- Pre-pay state -->
+<div id="state-pre" class="state active">
+  <div class="ambient-pre"></div>
+  <div class="logo-top">
+    <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+    <div class="biz">Phillip Preketes Studio</div>
+  </div>
+  <div class="inner">
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+    </div>
+    <div class="pre-title">Reviewing invoice from Phillip Preketes Studio</div>
+    <div class="pre-sub">Loading secure payment page. You'll be redirected to Stripe in a moment.</div>
+    <div class="pre-card">
+      <div class="pre-row"><span class="k">Invoice</span><span class="v">INV-1024</span></div>
+      <div class="pre-row"><span class="k">From</span><span class="v">Phillip Preketes Studio</span></div>
+      <div class="pre-row"><span class="k">For</span><span class="v">Acme Corp</span></div>
+      <div class="pre-row"><span class="k">Due date</span><span class="v" style="color:var(--redline);">11 Apr 2026 (overdue)</span></div>
+      <div class="pre-row" style="border-top:1px solid var(--hair);margin-top:8px;padding-top:10px;" class="total">
+        <span class="k" style="color:var(--warm-white);font-weight:600;">Total due</span>
+        <span class="v" style="color:var(--warm-white);font-weight:600;font-size:15px;">A$4,250.00</span>
+      </div>
+    </div>
+    <div class="pre-note">🔒 Secure · Powered by Stripe · No account required</div>
+  </div>
+</div>
+
+<!-- Post-pay state -->
+<div id="state-paid" class="state">
+  <div class="ambient-paid"></div>
+  <div class="logo-top">
+    <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+    <div class="biz">Phillip Preketes Studio</div>
+  </div>
+  <div class="inner">
+    <div class="checkmark-wrap">
+      <div class="checkmark-circle">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <path d="M8 18l7 7 13-13" stroke="#2ec27e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="paid-title">Payment received. Thanks!</div>
+    <div class="paid-sub">Your payment of <strong style="color:#f5f1ea;">A$4,250.00</strong> has been processed successfully.</div>
+    <div class="receipt-card">
+      <div class="receipt-title">Receipt summary</div>
+      <div class="receipt-row"><span class="k">Invoice</span><span class="v">INV-1024</span></div>
+      <div class="receipt-row"><span class="k">Paid to</span><span class="v">Phillip Preketes Studio</span></div>
+      <div class="receipt-row"><span class="k">Date</span><span class="v">25 Apr 2026 · 2:14 PM</span></div>
+      <div class="receipt-row"><span class="k">Method</span><span class="v">Visa ···· 4242</span></div>
+      <div class="receipt-row amount"><span class="k" style="color:var(--warm-white);font-weight:600;">Amount paid</span><span class="v">A$4,250.00</span></div>
+    </div>
+    <div class="email-note">
+      <span class="icon">📧</span>
+      <span>Receipt emailed to james@acmecorp.com</span>
+    </div>
+    <a href="#" class="btn-home">← Return to homepage</a>
+  </div>
+</div>
+
+<!-- Demo toggle -->
+<div class="demo-toggle">
+  <button class="demo-btn active" onclick="showState('pre', this)">Pre-pay</button>
+  <button class="demo-btn" onclick="showState('paid', this)">Post-pay #paid</button>
+</div>
+
+<script>
+function showState(id, btn) {
+  document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('state-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+// Check URL hash
+if (window.location.hash === '#paid') {
+  showState('paid', document.querySelectorAll('.demo-btn')[1]);
+}
+</script>
+</body>
+</html>

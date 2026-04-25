@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Error Pages | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --redline-glow: rgba(255,75,62,0.6);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+}
+/* Anchor nav */
+.anchor-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(8,9,11,0.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hair);
+  display: flex; align-items: center; gap: 0; height: 52px; padding: 0 28px;
+}
+.anchor-nav .logo { display: flex; align-items: center; gap: 8px; margin-right: 20px; }
+.anchor-nav .logo img { width: 24px; height: 24px; border-radius: 6px; }
+.anchor-nav .logo span { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+.anchor-link {
+  padding: 6px 12px; font-size: 13px; color: var(--ash);
+  text-decoration: none; border-radius: 7px; transition: all 0.13s;
+}
+.anchor-link:hover { color: var(--warm-white); background: rgba(255,255,255,0.05); }
+.anchor-divider { width: 1px; height: 18px; background: var(--hair); margin: 0 4px; }
+/* Sections */
+section {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 80px 32px; position: relative; overflow: hidden;
+}
+section:not(:last-child) { border-bottom: 1px solid var(--hair); }
+.glow-top-right {
+  position: absolute; top: -150px; right: -150px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(255,75,62,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+.error-inner { text-align: center; max-width: 520px; position: relative; z-index: 1; }
+.error-code {
+  font-size: clamp(80px, 16vw, 140px);
+  font-weight: 500; letter-spacing: -0.05em; line-height: 1;
+  color: var(--redline); margin-bottom: 12px;
+  text-shadow: 0 0 60px rgba(255,75,62,0.25);
+  font-variant-numeric: tabular-nums;
+}
+.error-title {
+  font-size: 22px; font-weight: 500; letter-spacing: -0.035em;
+  color: var(--warm-white); margin-bottom: 12px;
+}
+.error-sub { font-size: 15px; color: var(--ash); line-height: 1.6; margin-bottom: 28px; }
+.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 11px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: opacity 0.15s, background 0.15s, border-color 0.15s; }
+.btn-primary { background: var(--redline); color: #fff; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary { background: transparent; color: var(--warm-white); border: 1px solid var(--hair-strong); }
+.btn-secondary:hover { border-color: var(--ash); background: rgba(255,255,255,0.04); }
+.maintenance-icon { font-size: 52px; margin-bottom: 16px; }
+.est-time { background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 12px; padding: 14px 22px; display: inline-flex; gap: 12px; align-items: center; margin-bottom: 28px; }
+.est-time .label { font-size: 12px; color: var(--ash-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.est-time .value { font-size: 16px; font-weight: 500; color: var(--warm-white); }
+.maint-email-row { display: flex; gap: 0; max-width: 360px; margin: 16px auto 0; }
+.maint-email-row input {
+  flex: 1; background: var(--graphite-800); border: 1px solid var(--hair);
+  border-right: none; border-radius: 10px 0 0 10px; padding: 11px 14px;
+  color: var(--warm-white); font-size: 14px; font-family: inherit; outline: none;
+}
+.maint-email-row input::placeholder { color: var(--ash-dim); }
+.maint-email-row button {
+  background: var(--graphite-700); border: 1px solid var(--hair);
+  border-radius: 0 10px 10px 0; padding: 11px 16px; color: var(--warm-white);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.13s;
+}
+.maint-email-row button:hover { background: var(--graphite-600); }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,75,62,0.08); border: 1px solid rgba(255,75,62,0.2); border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--redline); font-weight: 600; margin-bottom: 20px; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--redline); animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+</style>
+</head>
+<body>
+<nav class="anchor-nav">
+  <div class="logo">
+    <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+    <span>Redline</span>
+  </div>
+  <div class="anchor-divider"></div>
+  <a href="#not-found" class="anchor-link">404</a>
+  <a href="#server-error" class="anchor-link">500</a>
+  <a href="#maintenance" class="anchor-link">Maintenance</a>
+</nav>
+
+<section id="not-found">
+  <div class="glow-top-right"></div>
+  <div class="error-inner">
+    <div class="error-code">404</div>
+    <div class="error-title">This page took the wrong exit.</div>
+    <div class="error-sub">The page you're looking for doesn't exist or may have been moved. Double-check the URL or head back to safety.</div>
+    <div class="btn-row">
+      <a href="#" class="btn btn-primary">← Back to dashboard</a>
+      <a href="#" class="btn btn-secondary">Go to invoices</a>
+    </div>
+  </div>
+</section>
+
+<section id="server-error">
+  <div class="glow-top-right" style="background:radial-gradient(circle, rgba(255,75,62,0.07) 0%, transparent 65%);"></div>
+  <div class="error-inner">
+    <div class="error-code">500</div>
+    <div class="error-title">Something went wrong on our end.</div>
+    <div class="error-sub">Our team has been notified and we're investigating. In the meantime, try refreshing the page.</div>
+    <div style="margin-bottom:24px;">
+      <div class="status-badge"><div class="status-dot"></div>Investigating</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="window.location.reload()">↺ Refresh page</button>
+      <a href="https://status.redlineinvoices.com" class="btn btn-secondary" target="_blank">Status page ↗</a>
+    </div>
+  </div>
+</section>
+
+<section id="maintenance">
+  <div class="glow-top-right" style="background:radial-gradient(circle, rgba(107,166,255,0.05) 0%, transparent 65%);"></div>
+  <div class="error-inner">
+    <div class="maintenance-icon">🔧</div>
+    <div class="error-title">Redline is being polished.</div>
+    <div class="error-sub">We're doing scheduled maintenance to make things faster and more reliable. Won't be long.</div>
+    <div class="est-time">
+      <div>
+        <div class="label">Estimated back online</div>
+        <div class="value">Today, 3:00 PM AEDT</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:var(--ash);margin-bottom:8px;">Get notified when we're back:</div>
+    <div class="maint-email-row">
+      <input type="email" placeholder="your@email.com">
+      <button>Notify me</button>
+    </div>
+  </div>
+</section>
+</body>
+</html>

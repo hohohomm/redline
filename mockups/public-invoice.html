@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice from Phillip Preketes | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --redline-glow: rgba(255,75,62,0.6);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  padding: 32px 16px 80px;
+}
+.wrap { max-width: 600px; margin: 0 auto; }
+.logo-bar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 40px;
+}
+.logo-bar img { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--hair); }
+.logo-bar .biz { font-size: 15px; font-weight: 600; color: var(--warm-white); letter-spacing: -0.02em; }
+.logo-bar .by { font-size: 13px; color: var(--ash-dim); margin-left: auto; }
+.invoice-intro { margin-bottom: 32px; }
+.invoice-intro .from { font-size: 13px; color: var(--ash); margin-bottom: 6px; }
+.invoice-intro h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.035em; color: var(--warm-white); margin-bottom: 4px; }
+.invoice-intro .inv-num { font-size: 13px; color: var(--ash-dim); }
+.due-banner {
+  background: var(--graphite-700); border: 1px solid var(--hair);
+  border-radius: 14px; padding: 20px 24px; margin-bottom: 24px;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  flex-wrap: wrap;
+}
+.due-banner .label { font-size: 13px; color: var(--ash); margin-bottom: 4px; }
+.due-banner .amount { font-size: 32px; font-weight: 500; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.due-banner .due-date { font-size: 13px; color: var(--ash); }
+.card { background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--ash); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 18px; }
+table.items { width: 100%; border-collapse: collapse; }
+table.items th { font-size: 12px; color: var(--ash-dim); font-weight: 500; text-align: left; padding: 0 0 10px; border-bottom: 1px solid var(--hair); }
+table.items th:last-child { text-align: right; }
+table.items td { padding: 13px 0; border-bottom: 1px solid var(--hair); font-size: 14px; color: var(--warm-white-dim); }
+table.items td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+table.items td.desc { color: var(--warm-white); }
+table.items tr:last-child td { border-bottom: none; }
+.totals-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; color: var(--ash); }
+.totals-row.grand { border-top: 1px solid var(--hair); margin-top: 8px; padding-top: 14px; font-size: 17px; font-weight: 600; color: var(--warm-white); font-variant-numeric: tabular-nums; }
+.cta-block { margin: 28px 0; }
+.btn-pay {
+  display: block; width: 100%; padding: 16px 18px;
+  background: var(--redline); color: #fff; border: none;
+  border-radius: 12px; font-size: 17px; font-weight: 700;
+  letter-spacing: -0.01em; text-align: center; cursor: pointer;
+  transition: opacity 0.15s; text-decoration: none;
+  box-shadow: 0 0 24px rgba(255,75,62,0.25);
+}
+.btn-pay:hover { opacity: 0.88; }
+.secure-note { text-align: center; font-size: 12px; color: var(--ash-dim); margin-top: 10px; }
+.tax-card { background: var(--graphite-800); border: 1px solid var(--hair); border-radius: 10px; padding: 16px 20px; }
+.tax-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ash); padding: 5px 0; }
+.tax-row:last-child { color: var(--warm-white-dim); font-weight: 500; }
+footer.invoice-foot {
+  margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--hair);
+  text-align: center; font-size: 13px; color: var(--ash-dim);
+}
+footer.invoice-foot a { color: var(--ash); text-decoration: underline; text-underline-offset: 3px; }
+.powered { margin-top: 18px; font-size: 12px; color: var(--ash-dim); opacity: 0.55; }
+@media (max-width: 768px) {
+  body { padding: 20px 14px 60px; }
+  .due-banner .amount { font-size: 26px; }
+  .btn-pay { font-size: 15px; padding: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo-bar">
+    <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+    <div class="biz">Phillip Preketes Studio</div>
+    <div class="by">Powered by Redline</div>
+  </div>
+
+  <div class="invoice-intro">
+    <div class="from">Invoice from Phillip Preketes Studio</div>
+    <h1>$4,250.00 due</h1>
+    <div class="inv-num">INV-1024 · Issued 28 Mar 2026</div>
+  </div>
+
+  <div class="due-banner">
+    <div>
+      <div class="label">Amount due</div>
+      <div class="amount">A$4,250.00</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="label">Due date</div>
+      <div class="due-date" style="color:var(--redline);font-weight:500;">11 Apr 2026 (overdue)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Line items</div>
+    <table class="items">
+      <thead>
+        <tr>
+          <th style="width:55%">Description</th>
+          <th>Qty</th>
+          <th style="text-align:right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="desc">Brand strategy workshop</td>
+          <td>1</td>
+          <td>$2,000.00</td>
+        </tr>
+        <tr>
+          <td class="desc">Creative direction retainer — March 2026</td>
+          <td>1</td>
+          <td>$1,500.00</td>
+        </tr>
+        <tr>
+          <td class="desc">Asset deliverables (logo suite + brand guidelines)</td>
+          <td>1</td>
+          <td>$568.18</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:16px;">
+      <div class="totals-row"><span>Subtotal</span><span>$4,068.18</span></div>
+      <div class="totals-row"><span>GST (10%)</span><span>$181.82</span></div>
+      <div class="totals-row grand"><span>Total AUD</span><span>$4,250.00</span></div>
+    </div>
+  </div>
+
+  <div class="cta-block">
+    <a href="#" class="btn-pay">Pay A$4,250.00</a>
+    <div class="secure-note">🔒 Secure payment via Stripe. No account needed.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tax summary</div>
+    <div class="tax-card">
+      <div class="tax-row"><span>Subtotal (excl. GST)</span><span>$4,068.18</span></div>
+      <div class="tax-row"><span>GST (10%)</span><span>$181.82</span></div>
+      <div class="tax-row" style="border-top:1px solid var(--hair);padding-top:10px;margin-top:4px;">
+        <span style="color:var(--warm-white);">Total (incl. GST)</span><span style="color:var(--warm-white);font-variant-numeric:tabular-nums;">A$4,250.00</span>
+      </div>
+      <div class="tax-row" style="margin-top:8px;font-size:12px;color:var(--ash-dim);">
+        <span>ABN</span><span>51 824 753 556</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="invoice-foot">
+    <p>Questions about this invoice? <a href="mailto:phillip@studio.com">Reply to this invoice</a> or email phillip@studio.com</p>
+    <p style="margin-top:8px;">Phillip Preketes Studio · ABN 51 824 753 556 · Sydney, NSW</p>
+    <div class="powered">Sent via Redline · redlineinvoices.com</div>
+  </footer>
+</div>
+</body>
+</html>

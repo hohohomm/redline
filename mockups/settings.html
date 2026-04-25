@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --redline-glow: rgba(255,75,62,0.6);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(8,9,11,0.88); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hair);
+  padding: 0 32px; height: 58px;
+  display: flex; align-items: center; gap: 12px;
+}
+header img { width: 28px; height: 28px; border-radius: 8px; }
+header span { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+.layout { display: flex; max-width: 1100px; margin: 0 auto; padding: 40px 32px 80px; gap: 32px; }
+.sidebar { width: 200px; flex-shrink: 0; }
+.sidebar-title { font-size: 11px; font-weight: 600; color: var(--ash-dim); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; padding: 0 12px; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-radius: 9px; cursor: pointer;
+  font-size: 14px; color: var(--ash); transition: all 0.13s;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { color: var(--warm-white); background: rgba(255,255,255,0.04); }
+.nav-item.active { color: var(--warm-white); background: var(--graphite-600); border: 1px solid var(--hair); }
+.nav-item .icon { width: 16px; text-align: center; font-size: 13px; }
+.content { flex: 1; min-width: 0; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.section-head { margin-bottom: 28px; }
+.section-head h2 { font-size: 22px; font-weight: 500; letter-spacing: -0.035em; margin-bottom: 4px; }
+.section-head p { font-size: 14px; color: var(--ash); }
+.card { background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--ash); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 20px; }
+.field { margin-bottom: 18px; }
+.field label { display: block; font-size: 13px; font-weight: 500; color: var(--warm-white-dim); margin-bottom: 7px; }
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--graphite-800); border: 1px solid var(--hair);
+  border-radius: 10px; padding: 11px 14px; color: var(--warm-white);
+  font-size: 14px; font-family: inherit; outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--hair-strong); }
+.field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23777274' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+.field textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
+.field .hint { font-size: 12px; color: var(--ash-dim); margin-top: 5px; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s, background 0.15s, border-color 0.15s; }
+.btn-primary { background: var(--redline); color: #fff; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary { background: transparent; color: var(--warm-white); border: 1px solid var(--hair-strong); }
+.btn-secondary:hover { border-color: var(--ash); background: rgba(255,255,255,0.04); }
+.upload-zone {
+  border: 1.5px dashed var(--hair-strong); border-radius: 12px; padding: 36px;
+  text-align: center; cursor: pointer; transition: border-color 0.15s;
+  background: var(--graphite-800);
+}
+.upload-zone:hover { border-color: var(--ash); }
+.upload-zone .icon { font-size: 28px; margin-bottom: 10px; opacity: 0.5; }
+.upload-zone .label { font-size: 14px; color: var(--ash); }
+.upload-zone .sub { font-size: 12px; color: var(--ash-dim); margin-top: 4px; }
+.color-swatch {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--graphite-800); border: 1px solid var(--hair);
+  border-radius: 10px; padding: 11px 14px;
+}
+.swatch-box { width: 28px; height: 28px; border-radius: 6px; background: var(--redline); flex-shrink: 0; }
+.swatch-value { font-size: 14px; color: var(--warm-white); font-variant-numeric: tabular-nums; flex: 1; }
+.swatch-locked { font-size: 12px; color: var(--ash-dim); }
+.sequence-item { background: var(--graphite-800); border: 1px solid var(--hair); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; }
+.seq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.seq-label { font-size: 13px; font-weight: 600; color: var(--warm-white-dim); }
+.seq-day-badge { font-size: 12px; background: rgba(107,166,255,0.12); color: #6ba6ff; border: 1px solid rgba(107,166,255,0.2); border-radius: 999px; padding: 2px 9px; }
+.plan-card { background: var(--graphite-800); border: 1px solid var(--hair); border-radius: 12px; padding: 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.plan-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.plan-price { font-size: 28px; font-weight: 500; letter-spacing: -0.04em; margin-bottom: 4px; }
+.plan-price span { font-size: 14px; color: var(--ash); font-weight: 400; }
+.plan-badge { background: rgba(46,194,126,0.12); color: #2ec27e; border: 1px solid rgba(46,194,126,0.25); border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--ash-dim); font-size: 14px; }
+.empty-state .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+</style>
+</head>
+<body>
+<header>
+  <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+  <span>Redline</span>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-title">Settings</div>
+    <button class="nav-item active" onclick="switchTab('profile', this)"><span class="icon">👤</span>Profile</button>
+    <button class="nav-item" onclick="switchTab('branding', this)"><span class="icon">🎨</span>Branding</button>
+    <button class="nav-item" onclick="switchTab('sequences', this)"><span class="icon">📅</span>Sequences</button>
+    <button class="nav-item" onclick="switchTab('billing', this)"><span class="icon">💳</span>Billing</button>
+    <button class="nav-item" onclick="switchTab('team', this)"><span class="icon">👥</span>Team</button>
+  </nav>
+
+  <main class="content">
+    <!-- Profile -->
+    <div class="tab-panel active" id="tab-profile">
+      <div class="section-head">
+        <h2>Profile</h2>
+        <p>Your account details and business defaults.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Personal</div>
+        <div class="row-2">
+          <div class="field"><label>First name</label><input type="text" value="Phillip"></div>
+          <div class="field"><label>Last name</label><input type="text" value="Preketes"></div>
+        </div>
+        <div class="field"><label>Email address</label><input type="email" value="phillip@studio.com"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Business</div>
+        <div class="field"><label>Business name</label><input type="text" value="Phillip Preketes Studio"></div>
+        <div class="row-2">
+          <div class="field"><label>ABN</label><input type="text" value="51 824 753 556"></div>
+          <div class="field"><label>Currency</label>
+            <select><option selected>AUD — Australian Dollar</option><option>USD — US Dollar</option><option>GBP — British Pound</option></select>
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>Payment terms</label>
+            <select><option>Net 7</option><option selected>Net 14</option><option>Net 30</option><option>Due on receipt</option></select>
+          </div>
+          <div class="field"><label>Late fee</label><input type="text" value="$50 flat fee after 30 days"></div>
+        </div>
+        <div class="field">
+          <label>Business address</label>
+          <input type="text" value="Level 4, 22 Margaret St, Sydney NSW 2000">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+
+    <!-- Branding -->
+    <div class="tab-panel" id="tab-branding">
+      <div class="section-head">
+        <h2>Branding</h2>
+        <p>How clients see your invoices and emails.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Logo</div>
+        <div class="upload-zone">
+          <div class="icon">📎</div>
+          <div class="label">Drop your logo here or click to upload</div>
+          <div class="sub">PNG or SVG · Recommended 200×200px · Max 2 MB</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Brand colour</div>
+        <div class="field">
+          <label>Primary colour</label>
+          <div class="color-swatch">
+            <div class="swatch-box"></div>
+            <div class="swatch-value">#ff4b3e</div>
+            <div class="swatch-locked">🔒 Locked to Redline brand during beta</div>
+          </div>
+          <div class="hint">Custom colours available on Pro plan.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Email signature</div>
+        <div class="field">
+          <label>Sign-off text</label>
+          <textarea>Thanks for your business,
+Phillip
+Phillip Preketes Studio · 0412 345 678</textarea>
+          <div class="hint">Appended to all client-facing emails.</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+
+    <!-- Sequences -->
+    <div class="tab-panel" id="tab-sequences">
+      <div class="section-head">
+        <h2>Reminder sequences</h2>
+        <p>Automated follow-up emails sent on your behalf. Edit tone and timing.</p>
+      </div>
+      <div class="sequence-item">
+        <div class="seq-header">
+          <span class="seq-label">Stage 1 — Friendly nudge</span>
+          <span class="seq-day-badge">+3 days after due</span>
+        </div>
+        <div class="field"><label>Subject</label><input type="text" value="Friendly reminder — INV-{number} is due"></div>
+        <div class="field"><label>Message</label><textarea style="min-height:72px;">Hi {client_name},\n\nJust a friendly reminder that invoice {number} for ${amount} was due on {due_date}.\n\nYou can pay securely here: {pay_link}</textarea></div>
+      </div>
+      <div class="sequence-item">
+        <div class="seq-header">
+          <span class="seq-label">Stage 2 — Overdue notice</span>
+          <span class="seq-day-badge">+7 days overdue</span>
+        </div>
+        <div class="field"><label>Subject</label><input type="text" value="Invoice {number} is now overdue"></div>
+        <div class="field"><label>Message</label><textarea style="min-height:72px;">Hi {client_name},\n\nInvoice {number} for ${amount} is now {days_overdue} days overdue. Please arrange payment at your earliest convenience.</textarea></div>
+      </div>
+      <div class="sequence-item">
+        <div class="seq-header">
+          <span class="seq-label">Stage 3 — Late fee notice</span>
+          <span class="seq-day-badge">+14 days overdue</span>
+        </div>
+        <div class="field"><label>Subject</label><input type="text" value="Late fee applied — INV-{number}"></div>
+        <div class="field"><label>Message</label><textarea style="min-height:72px;">Hi {client_name},\n\nAs your invoice remains unpaid, a late fee of ${late_fee} has been applied. Updated total: ${total_with_fee}.</textarea></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+        <button class="btn btn-secondary">+ Add stage</button>
+        <button class="btn btn-primary">Save sequence</button>
+      </div>
+    </div>
+
+    <!-- Billing -->
+    <div class="tab-panel" id="tab-billing">
+      <div class="section-head">
+        <h2>Billing</h2>
+        <p>Your Redline subscription and payment method.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Current plan</div>
+        <div class="plan-card">
+          <div>
+            <div class="plan-name">Pro</div>
+            <div class="plan-price">$29 <span>/ month</span></div>
+            <div style="font-size:13px;color:var(--ash);">Renews 1 May 2026 · Unlimited invoices</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+            <span class="plan-badge">Active</span>
+            <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px;">Manage</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Payment method</div>
+        <div style="display:flex;align-items:center;gap:14px;background:var(--graphite-800);border:1px solid var(--hair);border-radius:10px;padding:14px 18px;">
+          <span style="font-size:22px;">💳</span>
+          <div>
+            <div style="font-size:14px;font-weight:500;">Visa ending 4242</div>
+            <div style="font-size:12px;color:var(--ash-dim);">Expires 09/27</div>
+          </div>
+          <button class="btn btn-secondary" style="margin-left:auto;font-size:13px;padding:7px 12px;">Update</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Invoice history</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr><th style="text-align:left;font-size:12px;color:var(--ash-dim);padding:0 0 10px;border-bottom:1px solid var(--hair);">Date</th><th style="text-align:left;font-size:12px;color:var(--ash-dim);padding:0 0 10px;border-bottom:1px solid var(--hair);">Description</th><th style="text-align:right;font-size:12px;color:var(--ash-dim);padding:0 0 10px;border-bottom:1px solid var(--hair);">Amount</th><th style="width:80px;border-bottom:1px solid var(--hair);"></th></tr></thead>
+          <tbody>
+            <tr><td style="padding:12px 0;font-size:14px;border-bottom:1px solid var(--hair);">1 Apr 2026</td><td style="padding:12px 0;font-size:14px;color:var(--warm-white-dim);border-bottom:1px solid var(--hair);">Redline Pro — April</td><td style="padding:12px 0;font-size:14px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--hair);">$29.00</td><td style="padding:12px 0;text-align:right;border-bottom:1px solid var(--hair);"><a href="#" style="font-size:12px;color:var(--ash);text-decoration:none;">PDF</a></td></tr>
+            <tr><td style="padding:12px 0;font-size:14px;border-bottom:1px solid var(--hair);">1 Mar 2026</td><td style="padding:12px 0;font-size:14px;color:var(--warm-white-dim);border-bottom:1px solid var(--hair);">Redline Pro — March</td><td style="padding:12px 0;font-size:14px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--hair);">$29.00</td><td style="padding:12px 0;text-align:right;border-bottom:1px solid var(--hair);"><a href="#" style="font-size:12px;color:var(--ash);text-decoration:none;">PDF</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Team -->
+    <div class="tab-panel" id="tab-team">
+      <div class="section-head">
+        <h2>Team</h2>
+        <p>Invite colleagues to collaborate on invoices.</p>
+      </div>
+      <div class="card">
+        <div class="empty-state">
+          <div class="icon">👥</div>
+          <div style="font-size:15px;font-weight:500;color:var(--warm-white-dim);margin-bottom:8px;">Team seats on Pro plan</div>
+          <div style="margin-bottom:20px;">Upgrade to invite team members and manage permissions.</div>
+          <button class="btn btn-primary">Upgrade to Pro</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acme Corp | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(8,9,11,0.88); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hair);
+  padding: 0 32px; height: 58px;
+  display: flex; align-items: center; gap: 12px;
+}
+header img { width: 28px; height: 28px; border-radius: 8px; }
+header .logo-name { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+main { max-width: 1120px; margin: 0 auto; padding: 36px 32px 80px; }
+.breadcrumb { font-size: 13px; color: var(--ash-dim); margin-bottom: 24px; display: flex; gap: 6px; align-items: center; }
+.breadcrumb a { color: var(--ash); text-decoration: none; }
+.client-header { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 32px; flex-wrap: wrap; }
+.client-avatar { width: 56px; height: 56px; border-radius: 14px; background: var(--graphite-600); border: 1px solid var(--hair); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; color: var(--redline); flex-shrink: 0; }
+.client-name h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.035em; margin-bottom: 4px; }
+.client-name .contact { font-size: 14px; color: var(--ash); }
+.stat-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+.stat-card { background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 12px; padding: 18px 22px; flex: 1; min-width: 140px; }
+.stat-label { font-size: 12px; color: var(--ash-dim); font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-value { font-size: 24px; font-weight: 500; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.stat-sub { font-size: 12px; color: var(--ash-dim); margin-top: 3px; }
+.layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--hair); margin-bottom: 24px; }
+.tab-btn {
+  padding: 9px 16px; font-size: 14px; font-weight: 500; color: var(--ash);
+  background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color 0.13s; margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--warm-white); }
+.tab-btn.active { color: var(--warm-white); border-bottom-color: var(--redline); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.card { background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 14px; padding: 24px; margin-bottom: 18px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--ash); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 18px; }
+.inv-row { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--hair); }
+.inv-row:last-child { border-bottom: none; }
+.inv-num { font-size: 13px; font-weight: 600; color: var(--warm-white); width: 80px; flex-shrink: 0; }
+.inv-desc { flex: 1; font-size: 13px; color: var(--ash); }
+.inv-date { font-size: 12px; color: var(--ash-dim); width: 100px; flex-shrink: 0; }
+.inv-amount { font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 500; width: 90px; text-align: right; flex-shrink: 0; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.chip-overdue { background: rgba(255,75,62,0.15); color: var(--redline); border: 1px solid rgba(255,75,62,0.3); }
+.chip-paid { background: rgba(46,194,126,0.12); color: #2ec27e; border: 1px solid rgba(46,194,126,0.25); }
+.chip-sent { background: rgba(107,166,255,0.12); color: #6ba6ff; border: 1px solid rgba(107,166,255,0.25); }
+.chip-draft { background: rgba(166,162,160,0.1); color: var(--ash); border: 1px solid var(--hair); }
+.behavior-card { background: rgba(107,166,255,0.05); border: 1px solid rgba(107,166,255,0.15); border-radius: 12px; padding: 16px 20px; margin-bottom: 18px; }
+.behavior-text { font-size: 14px; color: var(--warm-white-dim); line-height: 1.55; }
+.behavior-text strong { color: #6ba6ff; }
+.sidebar-card { background: var(--graphite-700); border: 1px solid var(--hair); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+.info-row { display: flex; flex-direction: column; gap: 3px; padding: 10px 0; border-bottom: 1px solid var(--hair); }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 11px; color: var(--ash-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.info-value { font-size: 13px; color: var(--warm-white-dim); }
+.payment-method { display: flex; align-items: center; gap: 10px; background: var(--graphite-800); border: 1px solid var(--hair); border-radius: 9px; padding: 11px 14px; }
+.pm-icon { font-size: 18px; }
+.pm-detail { flex: 1; }
+.pm-detail .name { font-size: 13px; font-weight: 500; }
+.pm-detail .exp { font-size: 11px; color: var(--ash-dim); }
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: opacity 0.15s, background 0.15s; }
+.btn-primary { background: var(--redline); color: #fff; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-ghost { background: transparent; color: var(--ash); border: 1px solid var(--hair); }
+.btn-ghost:hover { color: var(--warm-white); border-color: var(--hair-strong); background: rgba(255,255,255,0.03); }
+</style>
+</head>
+<body>
+<header>
+  <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+  <span class="logo-name">Redline</span>
+</header>
+<main>
+  <div class="breadcrumb">
+    <a href="#">Clients</a><span>›</span><span>Acme Corp</span>
+  </div>
+
+  <div class="client-header">
+    <div class="client-avatar">A</div>
+    <div class="client-name">
+      <h1>Acme Corp</h1>
+      <div class="contact">james@acmecorp.com · +61 2 9876 5432</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-ghost">Edit client</button>
+      <button class="btn btn-primary">+ New invoice</button>
+    </div>
+  </div>
+
+  <div class="stat-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total billed</div>
+      <div class="stat-value">$28,750</div>
+      <div class="stat-sub">6 invoices</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total paid</div>
+      <div class="stat-value" style="color:#2ec27e;">$24,500</div>
+      <div class="stat-sub">5 invoices</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Outstanding</div>
+      <div class="stat-value" style="color:var(--redline);">$4,250</div>
+      <div class="stat-sub">1 overdue</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg days to pay</div>
+      <div class="stat-value">18</div>
+      <div class="stat-sub">+4 days late avg</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('invoices', this)">Invoices</button>
+        <button class="tab-btn" onclick="switchTab('activity', this)">Activity</button>
+        <button class="tab-btn" onclick="switchTab('notes', this)">Notes</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-invoices">
+        <div class="behavior-card">
+          <div class="behavior-text">Pays on average <strong>4 days late</strong>. Best time to invoice: <strong>Tuesday</strong>. Most active email day: <strong>Wednesday morning</strong>.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">All invoices</div>
+          <div class="inv-row">
+            <div class="inv-num">INV-1024</div>
+            <div class="inv-desc">Brand strategy workshop + retainer</div>
+            <div class="inv-date">11 Apr 2026</div>
+            <div class="inv-amount" style="color:var(--redline);">$4,250</div>
+            <span class="chip chip-overdue">Overdue</span>
+          </div>
+          <div class="inv-row">
+            <div class="inv-num">INV-1019</div>
+            <div class="inv-desc">Website redesign — phase 2</div>
+            <div class="inv-date">10 Mar 2026</div>
+            <div class="inv-amount">$8,200</div>
+            <span class="chip chip-paid">Paid</span>
+          </div>
+          <div class="inv-row">
+            <div class="inv-num">INV-1012</div>
+            <div class="inv-desc">Logo suite + brand guidelines</div>
+            <div class="inv-date">14 Feb 2026</div>
+            <div class="inv-amount">$3,500</div>
+            <span class="chip chip-paid">Paid</span>
+          </div>
+          <div class="inv-row">
+            <div class="inv-num">INV-1007</div>
+            <div class="inv-desc">Social media content pack</div>
+            <div class="inv-date">22 Jan 2026</div>
+            <div class="inv-amount">$2,800</div>
+            <span class="chip chip-paid">Paid</span>
+          </div>
+          <div class="inv-row">
+            <div class="inv-num">INV-1001</div>
+            <div class="inv-desc">Discovery + strategy workshop</div>
+            <div class="inv-date">5 Dec 2025</div>
+            <div class="inv-amount">$4,000</div>
+            <span class="chip chip-paid">Paid</span>
+          </div>
+          <div class="inv-row">
+            <div class="inv-num">INV-0996</div>
+            <div class="inv-desc">Initial consultation</div>
+            <div class="inv-date">18 Nov 2025</div>
+            <div class="inv-amount">$6,000</div>
+            <span class="chip chip-paid">Paid</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-activity">
+        <div class="card">
+          <div class="card-title">Recent activity</div>
+          <div style="color:var(--ash-dim);font-size:14px;padding:16px 0;">Activity timeline coming soon.</div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-notes">
+        <div class="card">
+          <div class="card-title">Notes</div>
+          <textarea style="width:100%;background:var(--graphite-800);border:1px solid var(--hair);border-radius:10px;padding:12px 14px;color:var(--warm-white);font-family:inherit;font-size:14px;line-height:1.55;resize:vertical;min-height:120px;outline:none;" placeholder="Add a private note about this client...">Long payment cycles — follow up after 10 days. James prefers email over phone. Best POC for invoicing.</textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+            <button class="btn btn-primary">Save note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="sidebar-card">
+        <div class="card-title" style="margin-bottom:0;">Contact info</div>
+        <div class="info-row"><div class="info-label">Name</div><div class="info-value">James Morrison</div></div>
+        <div class="info-row"><div class="info-label">Email</div><div class="info-value">james@acmecorp.com</div></div>
+        <div class="info-row"><div class="info-label">Phone</div><div class="info-value">+61 2 9876 5432</div></div>
+        <div class="info-row"><div class="info-label">Company</div><div class="info-value">Acme Corp Pty Ltd</div></div>
+        <div class="info-row"><div class="info-label">ABN</div><div class="info-value">62 100 455 332</div></div>
+        <div class="info-row"><div class="info-label">Address</div><div class="info-value">Level 12, 1 Market St, Sydney NSW 2000</div></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="card-title">Payment on file</div>
+        <div class="payment-method">
+          <div class="pm-icon">💳</div>
+          <div class="pm-detail">
+            <div class="name">Visa ···· 4242</div>
+            <div class="exp">Expires 08/27 · Stripe customer</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

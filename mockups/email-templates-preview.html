@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Templates Preview | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  padding: 40px 32px 80px;
+}
+h1 { font-size: 22px; font-weight: 500; letter-spacing: -0.035em; margin-bottom: 6px; }
+.page-sub { font-size: 14px; color: var(--ash-dim); margin-bottom: 48px; }
+.email-section { margin-bottom: 48px; }
+.trigger-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 600; color: var(--ash-dim);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-bottom: 14px;
+}
+.trigger-chip {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--hair);
+  border-radius: 999px; padding: 2px 9px; font-size: 11px;
+  color: var(--ash); font-weight: 500; text-transform: none; letter-spacing: 0;
+}
+.email-frame {
+  border: 1px solid var(--hair-strong); border-radius: 14px; overflow: hidden;
+  max-width: 580px;
+}
+.email-chrome {
+  background: var(--graphite-600); padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--hair);
+}
+.chrome-dots { display: flex; gap: 5px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f56; }
+.dot-y { background: #febc2e; }
+.dot-g { background: #27c840; }
+.chrome-title { font-size: 12px; color: var(--ash-dim); flex: 1; text-align: center; }
+.email-body {
+  background: #08090b; padding: 28px;
+}
+.email-logo { width: 36px; height: 36px; border-radius: 10px; background: #08090b; border: 1px solid #2a2c33; overflow: hidden; margin-bottom: 22px; }
+.email-logo img { width: 36px; height: 36px; display: block; }
+.email-h { font-size: 24px; font-weight: 500; letter-spacing: -0.03em; color: #f5f1ea; margin-bottom: 8px; line-height: 1.2; }
+.email-intro { font-size: 14px; color: #a6a2a0; line-height: 1.6; margin-bottom: 22px; }
+.email-cta {
+  display: block; text-align: center; background: #ff4b3e; color: #fff;
+  text-decoration: none; border-radius: 10px; padding: 13px 18px;
+  font-size: 14px; font-weight: 700; margin-bottom: 0;
+}
+.email-footer { font-size: 12px; color: #777274; margin-top: 18px; line-height: 1.55; }
+.email-extra { background: #0d0f13; border: 1px solid #2a2c33; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; }
+.email-extra-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.email-extra-row .k { color: #777274; }
+.email-extra-row .v { color: #d8d3ca; font-variant-numeric: tabular-nums; }
+.divider-line { border: none; border-top: 1px solid #2a2c33; margin: 20px 0; }
+</style>
+</head>
+<body>
+<h1>Email templates</h1>
+<p class="page-sub">All automated emails Redline sends on your behalf — reference previews.</p>
+
+<!-- 1. Magic link -->
+<div class="email-section">
+  <div class="trigger-label">Magic link <span class="trigger-chip">Trigger: sign-in request</span></div>
+  <div class="email-frame">
+    <div class="email-chrome"><div class="chrome-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="chrome-title">Sign in to Redline — phillip@studio.com</div></div>
+    <div class="email-body">
+      <div class="email-logo"><img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline"></div>
+      <div class="email-h">Sign in to Redline</div>
+      <div class="email-intro">Use this secure link to open your dashboard. It works once and expires in 10 minutes.</div>
+      <a href="#" class="email-cta">Open dashboard</a>
+      <div class="email-footer">Requested for phillip@studio.com. If the button does not work, paste this link into your browser: <span style="word-break:break-all;color:#ff9a91;">https://app.redlineinvoices.com/auth/verify?token_hash=abc123&amp;next=/dashboard</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. New invoice -->
+<div class="email-section">
+  <div class="trigger-label">New invoice sent <span class="trigger-chip">Trigger: invoice created + sent</span></div>
+  <div class="email-frame">
+    <div class="email-chrome"><div class="chrome-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="chrome-title">Invoice INV-1024 — $4,250.00 AUD — james@acmecorp.com</div></div>
+    <div class="email-body">
+      <div class="email-logo"><img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline"></div>
+      <div class="email-h">Invoice for $4,250.00</div>
+      <div class="email-intro">Hi James, you have received an invoice from Phillip Preketes Studio. Please review and pay by <strong style="color:#f5f1ea;">11 Apr 2026</strong>.</div>
+      <div class="email-extra">
+        <div class="email-extra-row"><span class="k">Invoice</span><span class="v">INV-1024</span></div>
+        <div class="email-extra-row"><span class="k">Issued</span><span class="v">28 Mar 2026</span></div>
+        <div class="email-extra-row"><span class="k">Due date</span><span class="v">11 Apr 2026</span></div>
+        <div class="email-extra-row"><span class="k">Amount due</span><span class="v" style="color:#f5f1ea;font-weight:600;">A$4,250.00</span></div>
+      </div>
+      <a href="#" class="email-cta">View &amp; Pay Invoice</a>
+      <div class="email-footer">Questions? Reply to this email or contact phillip@studio.com</div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Reminder 1 -->
+<div class="email-section">
+  <div class="trigger-label">Reminder — stage 1 <span class="trigger-chip">Trigger: +3 days past due</span></div>
+  <div class="email-frame">
+    <div class="email-chrome"><div class="chrome-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="chrome-title">Friendly reminder — INV-1024 is due — james@acmecorp.com</div></div>
+    <div class="email-body">
+      <div class="email-logo"><img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline"></div>
+      <div class="email-h">Just a friendly reminder</div>
+      <div class="email-intro">Hi James, this is a gentle reminder that invoice INV-1024 for <strong style="color:#f5f1ea;">A$4,250.00</strong> was due on 11 Apr 2026. No stress — please pay when you get a chance.</div>
+      <a href="#" class="email-cta">Pay A$4,250.00</a>
+      <div class="email-footer">Sent on behalf of Phillip Preketes Studio · If paid already, please disregard.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Reminder 2 -->
+<div class="email-section">
+  <div class="trigger-label">Reminder — stage 2 <span class="trigger-chip">Trigger: +7 days overdue</span></div>
+  <div class="email-frame">
+    <div class="email-chrome"><div class="chrome-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="chrome-title">Invoice INV-1024 is overdue — james@acmecorp.com</div></div>
+    <div class="email-body">
+      <div class="email-logo"><img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline"></div>
+      <div class="email-h">Invoice overdue</div>
+      <div class="email-intro">Hi James, invoice INV-1024 for <strong style="color:#f5f1ea;">A$4,250.00</strong> is now <strong style="color:#ff4b3e;">7 days overdue</strong>. Please arrange payment at your earliest convenience.</div>
+      <a href="#" class="email-cta">Pay now — A$4,250.00</a>
+      <div class="email-footer">Sent on behalf of Phillip Preketes Studio · Contact phillip@studio.com with any questions.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Reminder 3 late fee -->
+<div class="email-section">
+  <div class="trigger-label">Reminder — stage 3 <span class="trigger-chip">Trigger: +14 days overdue, late fee applied</span></div>
+  <div class="email-frame">
+    <div class="email-chrome"><div class="chrome-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="chrome-title">Late fee applied — INV-1024 — james@acmecorp.com</div></div>
+    <div class="email-body">
+      <div class="email-logo"><img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline"></div>
+      <div class="email-h">Late fee applied</div>
+      <div class="email-intro">Hi James, as invoice INV-1024 remains unpaid a <strong style="color:#ff4b3e;">$50.00 late fee</strong> has been applied. Your updated balance is <strong style="color:#f5f1ea;">A$4,300.00</strong>.</div>
+      <div class="email-extra">
+        <div class="email-extra-row"><span class="k">Original amount</span><span class="v">A$4,250.00</span></div>
+        <div class="email-extra-row"><span class="k">Late fee</span><span class="v" style="color:#ff4b3e;">+$50.00</span></div>
+        <div class="email-extra-row" style="border-top:1px solid #2a2c33;padding-top:8px;margin-top:4px;"><span class="k" style="color:#d8d3ca;font-weight:500;">Total now due</span><span class="v" style="color:#f5f1ea;font-weight:600;">A$4,300.00</span></div>
+      </div>
+      <a href="#" class="email-cta">Pay A$4,300.00</a>
+      <div class="email-footer">Sent on behalf of Phillip Preketes Studio</div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Reminder 4 final -->
+<div class="email-section">
+  <div class="trigger-label">Reminder — stage 4 <span class="trigger-chip">Trigger: +21 days overdue, final notice</span></div>
+  <div class="email-frame">
+    <div class="email-chrome"><div class="chrome-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="chrome-title">Final notice — INV-1024 — james@acmecorp.com</div></div>
+    <div class="email-body">
+      <div class="email-logo"><img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline"></div>
+      <div class="email-h">Final notice</div>
+      <div class="email-intro">Hi James, this is our final automated notice for invoice INV-1024. The outstanding balance of <strong style="color:#ff4b3e;">A$4,300.00</strong> must be settled immediately. Further inaction may result in escalation.</div>
+      <a href="#" class="email-cta" style="background:#c0392b;">Pay immediately — A$4,300.00</a>
+      <div class="email-footer">Sent on behalf of Phillip Preketes Studio · If payment has already been made, please disregard this notice.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Payment received -->
+<div class="email-section">
+  <div class="trigger-label">Payment received <span class="trigger-chip">Trigger: Stripe webhook payment_intent.succeeded</span></div>
+  <div class="email-frame">
+    <div class="email-chrome"><div class="chrome-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="chrome-title">Payment received — A$4,250.00 from Acme Corp</div></div>
+    <div class="email-body">
+      <div class="email-logo"><img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline"></div>
+      <div class="email-h">Payment received ✓</div>
+      <div class="email-intro">Great news — Acme Corp paid invoice INV-1024 in full. The funds will appear in your Stripe balance within 2 business days.</div>
+      <div class="email-extra">
+        <div class="email-extra-row"><span class="k">Invoice</span><span class="v">INV-1024</span></div>
+        <div class="email-extra-row"><span class="k">Client</span><span class="v">Acme Corp</span></div>
+        <div class="email-extra-row"><span class="k">Amount paid</span><span class="v" style="color:#2ec27e;font-weight:600;">A$4,250.00</span></div>
+        <div class="email-extra-row"><span class="k">Paid at</span><span class="v">25 Apr 2026 · 2:14 PM</span></div>
+      </div>
+      <a href="#" class="email-cta" style="background:#16181f;border:1px solid #2a2c33;color:#f5f1ea;">View in dashboard</a>
+      <div class="email-footer">Redline · redlineinvoices.com</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INV-1024 — Acme Corp | Redline</title>
+<style>
+:root {
+  --graphite-900: #08090b;
+  --graphite-800: #0d0f13;
+  --graphite-700: #101116;
+  --graphite-600: #16181f;
+  --hair: #2a2c33;
+  --hair-strong: #3a3d45;
+  --warm-white: #f5f1ea;
+  --warm-white-dim: #d8d3ca;
+  --ash: #a6a2a0;
+  --ash-dim: #777274;
+  --redline: #ff4b3e;
+  --redline-glow: rgba(255,75,62,0.6);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  min-height: 100vh;
+}
+.ambient {
+  position: fixed; top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(255,75,62,0.05) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(8,9,11,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hair);
+  padding: 0 32px;
+  height: 58px;
+  display: flex; align-items: center; gap: 16px;
+}
+.logo-wrap {
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-wrap img { width: 28px; height: 28px; border-radius: 8px; }
+.logo-wrap span { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; color: var(--warm-white); }
+nav { display: flex; gap: 4px; margin-left: auto; }
+.nav-link {
+  padding: 6px 12px; border-radius: 8px; font-size: 14px;
+  color: var(--ash); text-decoration: none; transition: color 0.15s;
+}
+.nav-link:hover { color: var(--warm-white); background: rgba(255,255,255,0.04); }
+main { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 36px 32px 80px; }
+.breadcrumb { font-size: 13px; color: var(--ash-dim); margin-bottom: 24px; display: flex; gap: 6px; align-items: center; }
+.breadcrumb a { color: var(--ash); text-decoration: none; }
+.breadcrumb a:hover { color: var(--warm-white); }
+.invoice-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap; margin-bottom: 32px;
+}
+.invoice-meta h1 {
+  font-size: 32px; font-weight: 500; letter-spacing: -0.035em;
+  color: var(--warm-white); margin-bottom: 8px;
+}
+.invoice-meta .sub {
+  font-size: 15px; color: var(--ash); display: flex; gap: 16px; align-items: center;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
+}
+.chip-overdue { background: rgba(255,75,62,0.15); color: var(--redline); border: 1px solid rgba(255,75,62,0.3); }
+.chip-paid { background: rgba(46,194,126,0.12); color: #2ec27e; border: 1px solid rgba(46,194,126,0.25); }
+.chip-sent { background: rgba(107,166,255,0.12); color: #6ba6ff; border: 1px solid rgba(107,166,255,0.25); }
+.chip-draft { background: rgba(166,162,160,0.1); color: var(--ash); border: 1px solid var(--hair); }
+.amount-big { font-size: 36px; font-weight: 500; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--warm-white); }
+.amount-big span { font-size: 18px; color: var(--ash); margin-right: 4px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 36px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 16px; border-radius: 10px; font-size: 14px;
+  font-weight: 600; cursor: pointer; border: none; text-decoration: none;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+}
+.btn-primary { background: var(--redline); color: #fff; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary {
+  background: transparent; color: var(--warm-white);
+  border: 1px solid var(--hair-strong);
+}
+.btn-secondary:hover { border-color: var(--ash); background: rgba(255,255,255,0.04); }
+.btn-ghost { background: transparent; color: var(--ash); border: 1px solid var(--hair); }
+.btn-ghost:hover { color: var(--warm-white); border-color: var(--hair-strong); }
+.two-col { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+.card {
+  background: var(--graphite-700); border: 1px solid var(--hair);
+  border-radius: 14px; padding: 24px;
+}
+.card-title { font-size: 13px; font-weight: 600; color: var(--ash); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 20px; }
+table.items { width: 100%; border-collapse: collapse; }
+table.items th {
+  font-size: 12px; color: var(--ash-dim); font-weight: 500;
+  text-align: left; padding: 0 0 12px; border-bottom: 1px solid var(--hair);
+}
+table.items th:last-child { text-align: right; }
+table.items td {
+  padding: 14px 0; border-bottom: 1px solid var(--hair);
+  font-size: 14px; color: var(--warm-white-dim); vertical-align: top;
+}
+table.items td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+table.items td.desc { color: var(--warm-white); }
+.totals { margin-top: 16px; }
+.totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: var(--ash); }
+.totals-row.grand { border-top: 1px solid var(--hair); margin-top: 8px; padding-top: 14px; font-size: 17px; font-weight: 600; color: var(--warm-white); font-variant-numeric: tabular-nums; }
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; gap: 14px; padding: 14px 0; position: relative; }
+.tl-item:not(:last-child)::after {
+  content: ''; position: absolute; left: 13px; top: 38px;
+  width: 1px; height: calc(100% - 12px); background: var(--hair);
+}
+.tl-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 13px; margin-top: 1px;
+  border: 1px solid var(--hair);
+}
+.tl-dot-sent { background: rgba(107,166,255,0.12); color: #6ba6ff; }
+.tl-dot-open { background: rgba(46,194,126,0.1); color: #2ec27e; }
+.tl-dot-warn { background: rgba(255,75,62,0.1); color: var(--redline); }
+.tl-body { flex: 1; }
+.tl-body .evt { font-size: 14px; color: var(--warm-white-dim); line-height: 1.4; }
+.tl-body .evt strong { color: var(--warm-white); font-weight: 500; }
+.tl-body .time { font-size: 12px; color: var(--ash-dim); margin-top: 3px; }
+.overdue-notice {
+  background: rgba(255,75,62,0.06); border: 1px solid rgba(255,75,62,0.2);
+  border-radius: 10px; padding: 14px 18px; margin-bottom: 24px;
+  display: flex; gap: 12px; align-items: center;
+}
+.overdue-notice .icon { color: var(--redline); font-size: 18px; }
+.overdue-notice .msg { font-size: 14px; color: var(--warm-white-dim); }
+.overdue-notice .msg strong { color: var(--redline); }
+.empty-block { padding: 24px; text-align: center; color: var(--ash-dim); font-size: 14px; border: 1px dashed var(--hair); border-radius: 10px; }
+.divider { border: none; border-top: 1px solid var(--hair); margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+<header>
+  <div class="logo-wrap">
+    <img src="https://redlineinvoices.com/assets/redline-icon.png" alt="Redline">
+    <span>Redline</span>
+  </div>
+  <nav>
+    <a href="#" class="nav-link">Dashboard</a>
+    <a href="#" class="nav-link">Invoices</a>
+    <a href="#" class="nav-link">Clients</a>
+  </nav>
+</header>
+<main>
+  <div class="breadcrumb">
+    <a href="#">Invoices</a>
+    <span>›</span>
+    <span>INV-1024</span>
+  </div>
+
+  <div class="invoice-header">
+    <div class="invoice-meta">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <h1>INV-1024</h1>
+        <span class="chip chip-overdue">● Overdue</span>
+      </div>
+      <div class="sub">
+        <span>Acme Corp</span>
+        <span style="color:var(--hair-strong)">·</span>
+        <span>Due 11 Apr 2026 <span style="color:var(--redline)">(14 days ago)</span></span>
+        <span style="color:var(--hair-strong)">·</span>
+        <span>2 reminders sent</span>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div class="amount-big"><span>AUD</span>$4,250.00</div>
+      <div style="font-size:13px;color:var(--ash-dim);margin-top:4px;">Total outstanding</div>
+    </div>
+  </div>
+
+  <div class="overdue-notice">
+    <div class="icon">⚠</div>
+    <div class="msg"><strong>14 days overdue.</strong> 2 automated reminders sent. Consider a manual nudge or escalation.</div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary">📣 Send manual nudge</button>
+    <button class="btn btn-secondary">✓ Mark paid</button>
+    <button class="btn btn-ghost">✏ Edit</button>
+    <button class="btn btn-ghost">↓ Download PDF</button>
+    <button class="btn btn-ghost">⎘ Copy pay link</button>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">Line items</div>
+        <table class="items">
+          <thead>
+            <tr>
+              <th style="width:50%">Description</th>
+              <th>Qty</th>
+              <th>Unit price</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="desc">Brand strategy workshop<br><span style="font-size:12px;color:var(--ash-dim)">2-day on-site session</span></td>
+              <td>1</td>
+              <td>$2,000.00</td>
+              <td>$2,000.00</td>
+            </tr>
+            <tr>
+              <td class="desc">Creative direction retainer<br><span style="font-size:12px;color:var(--ash-dim)">March 2026</span></td>
+              <td>1</td>
+              <td>$1,500.00</td>
+              <td>$1,500.00</td>
+            </tr>
+            <tr>
+              <td class="desc">Asset deliverables<br><span style="font-size:12px;color:var(--ash-dim)">Logo suite, brand guidelines PDF</span></td>
+              <td>1</td>
+              <td>$568.18</td>
+              <td>$568.18</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="totals">
+          <div class="totals-row"><span>Subtotal</span><span>$4,068.18</span></div>
+          <div class="totals-row"><span>GST (10%)</span><span>$181.82</span></div>
+          <div class="totals-row grand"><span>Total AUD</span><span>$4,250.00</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Payment history</div>
+        <div class="empty-block">No payments received yet.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title">Activity timeline</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot tl-dot-sent">→</div>
+            <div class="tl-body">
+              <div class="evt"><strong>Invoice sent</strong> to james@acmecorp.com</div>
+              <div class="time">28 Mar 2026 · 9:02 AM</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tl-dot-open">👁</div>
+            <div class="tl-body">
+              <div class="evt"><strong>Invoice opened</strong> by client</div>
+              <div class="time">28 Mar 2026 · 11:47 AM</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tl-dot-warn">!</div>
+            <div class="tl-body">
+              <div class="evt"><strong>Reminder 1 sent</strong> — Friendly nudge</div>
+              <div class="time">14 Apr 2026 · 8:00 AM</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tl-dot-warn">!</div>
+            <div class="tl-body">
+              <div class="evt"><strong>Reminder 2 sent</strong> — Overdue notice</div>
+              <div class="time">18 Apr 2026 · 8:00 AM</div>
+            </div>
+          </div>
+          <div class="tl-item" style="opacity:0.45;">
+            <div class="tl-dot" style="border:1px dashed var(--hair-strong);">⏳</div>
+            <div class="tl-body">
+              <div class="evt" style="color:var(--ash-dim);">Reminder 3 scheduled — Late fee notice</div>
+              <div class="time">25 Apr 2026 · 8:00 AM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="card-title">Invoice info</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--ash)">Client</span><span>Acme Corp</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--ash)">Contact</span><span>james@acmecorp.com</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--ash)">Issued</span><span>28 Mar 2026</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--ash)">Due date</span><span style="color:var(--redline)">11 Apr 2026</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--ash)">Payment terms</span><span>Net 14</span>
+          </div>
+          <hr class="divider">
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--ash)">Sequence</span><span style="color:#6ba6ff;">Auto reminders on</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--ash)">Late fee</span><span>+$50 after 30 days</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
