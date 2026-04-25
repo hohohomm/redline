@@ -1,3 +1,7 @@
+<img width="1672" height="941" alt="walkinnightinvoiceredthread" src="https://github.com/user-attachments/assets/43a2661e-1bda-4e75-8451-93997ae77152" />
+<img width="1254" height="1254" alt="mascot" src="https://github.com/user-attachments/assets/75b8d237-6bb6-4ca6-a80f-1ba2564ac75d" />
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
