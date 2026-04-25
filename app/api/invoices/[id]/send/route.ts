@@ -2,6 +2,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/resend";
+import { buildEmail, escapeHtml } from "@/lib/email/template-base";
 import { createInvoiceCheckoutUrl } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,6 +28,14 @@ export async function POST(
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("business_name")
+    .eq("user_id", user.id)
+    .single();
+
+  const businessName = settings?.business_name ?? "Redline";
+
   const service = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -40,10 +49,20 @@ export async function POST(
     appUrl,
   });
 
+  const total = Number(invoice.total).toFixed(2);
+  const safeBusinessName = escapeHtml(businessName);
+  const safeClientName = escapeHtml(invoice.client_name);
+
   await sendEmail({
     to: invoice.client_email,
-    subject: "New invoice",
-    html: `<p>Hi ${invoice.client_name},</p><p>You have a new invoice for $${invoice.total} due ${invoice.due_date}.</p><p><a href="${paymentUrl}">Pay invoice</a></p>`,
+    subject: `Invoice from ${businessName}`,
+    html: buildEmail({
+      title: `Invoice from ${safeBusinessName}`,
+      intro: `${safeBusinessName} sent you an invoice for $${total}, due ${escapeHtml(invoice.due_date)}.`,
+      ctaLabel: "View & pay invoice",
+      ctaUrl: paymentUrl,
+      footer: `Sent to ${safeClientName}. If you have questions, reply to this email.`,
+    }),
   });
 
   const { error: updateError } = await service

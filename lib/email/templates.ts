@@ -1,3 +1,5 @@
+import { buildEmail, escapeHtml } from "@/lib/email/template-base";
+
 type ReminderStage = 1 | 2 | 3 | 4;
 
 type ReminderInvoice = {
@@ -15,29 +17,44 @@ const subjects: Record<ReminderStage, string> = {
   4: "Final invoice notice",
 };
 
-const messages: Record<ReminderStage, string> = {
-  1: "Just a friendly reminder that this invoice is still open.",
-  2: "Your invoice is now overdue. Please arrange payment when you can.",
-  3: "A late fee has been applied because this invoice remains unpaid.",
-  4: "Final notice before further action. Please settle this invoice.",
+const titles: Record<ReminderStage, string> = {
+  1: "Friendly reminder",
+  2: "Invoice overdue",
+  3: "Late fee added",
+  4: "Final notice",
 };
 
-export function reminderSubject(stage: ReminderStage) {
+const intros: Record<ReminderStage, (amount: string) => string> = {
+  1: (amount) => `Just checking in — invoice for $${amount} is still open.`,
+  2: (amount) => `Your invoice for $${amount} is now overdue.`,
+  3: (amount) => `A late fee has been applied to invoice for $${amount}.`,
+  4: () => "Final notice before further steps. Please settle this invoice.",
+};
+
+const ctaLabels: Record<ReminderStage, string> = {
+  1: "Pay invoice",
+  2: "Pay invoice",
+  3: "Pay invoice + fee",
+  4: "Pay invoice",
+};
+
+export function reminderSubject(stage: ReminderStage): string {
   return subjects[stage];
 }
 
-export function reminderHtml(stage: ReminderStage, invoice: ReminderInvoice) {
+export function reminderHtml(stage: ReminderStage, invoice: ReminderInvoice): string {
   const total = Number(invoice.total).toFixed(2);
-  const paymentUrl = invoice.payment_url ?? `${process.env.APP_URL}/dashboard/invoices/${invoice.id}`;
+  const paymentUrl =
+    invoice.payment_url ??
+    `${process.env.APP_URL}/dashboard/invoices/${invoice.id}`;
 
-  return `
-    <main style="font-family: Arial, sans-serif; line-height: 1.5; color: #10131a;">
-      <h1 style="font-size: 22px;">${subjects[stage]}</h1>
-      <p>Hi ${invoice.client_name},</p>
-      <p>${messages[stage]}</p>
-      <p><strong>Total:</strong> $${total}</p>
-      <p><strong>Due date:</strong> ${invoice.due_date}</p>
-      <p><a href="${paymentUrl}">Pay invoice</a></p>
-    </main>
-  `;
+  const safeClientName = escapeHtml(invoice.client_name);
+
+  return buildEmail({
+    title: titles[stage],
+    intro: intros[stage](total),
+    ctaLabel: ctaLabels[stage],
+    ctaUrl: paymentUrl,
+    footer: `Sent to ${safeClientName}. If you have questions, reply to this email.`,
+  });
 }
