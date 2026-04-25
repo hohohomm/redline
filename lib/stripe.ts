@@ -15,3 +15,45 @@ export function getStripe(): Stripe {
   }
   return _stripe;
 }
+
+type CreateInvoiceCheckoutUrlArgs = {
+  invoiceId: string;
+  total: number | string;
+  appUrl: string;
+  clientName?: string | null;
+};
+
+export async function createInvoiceCheckoutUrl({
+  invoiceId,
+  total,
+  appUrl,
+  clientName,
+}: CreateInvoiceCheckoutUrlArgs): Promise<string> {
+  const baseUrl = appUrl.replace(/\/$/, "");
+  const session = await getStripe().checkout.sessions.create({
+    mode: "payment",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: clientName ? `Invoice for ${clientName}` : `Invoice ${invoiceId}`,
+          },
+          unit_amount: Math.round(Number(total) * 100),
+        },
+        quantity: 1,
+      },
+    ],
+    metadata: {
+      invoice_id: invoiceId,
+    },
+    success_url: `${baseUrl}/paid`,
+    cancel_url: baseUrl,
+  });
+
+  if (!session.url) {
+    throw new Error("Stripe did not return a checkout URL");
+  }
+
+  return session.url;
+}

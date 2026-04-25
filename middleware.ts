@@ -6,9 +6,26 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+  const isDashboard = path.startsWith("/dashboard");
+  const isLogin = path === "/login";
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  if (!isDashboard && !isLogin) {
+    return response;
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) {
+    if (isDashboard) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/login";
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return response;
+  }
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {
@@ -29,10 +46,6 @@ export async function middleware(request: NextRequest) {
 
   const { data: userData } = await supabase.auth.getUser();
   const user = userData.user;
-
-  const path = request.nextUrl.pathname;
-  const isDashboard = path.startsWith("/dashboard");
-  const isLogin = path === "/login";
 
   if (isDashboard && !user) {
     const loginUrl = request.nextUrl.clone();

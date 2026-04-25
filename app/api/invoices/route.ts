@@ -1,5 +1,8 @@
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email/resend";
+import { createInvoiceCheckoutUrl } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 type InvoiceRequest = {
@@ -71,6 +74,51 @@ export async function POST(request: Request) {
   if (lineItemsError) {
     return NextResponse.json({ error: lineItemsError.message }, { status: 500 });
   }
+
+  const appUrl = process.env.APP_URL ?? new URL(request.url).origin;
+  const paymentUrl = await createInvoiceCheckoutUrl({
+    invoiceId: invoice.id,
+    total: subtotal,
+    clientName: body.client_name,
+    appUrl,
+  });
+
+  await sendEmail({
+    to: body.client_email,
+    subject: "New invoice",
+    html: `
+      <main style="font-family: Arial, sans-serif; line-height: 1.5; color: #10131a;">
+        <h1 style="font-size: 22px;">New invoice</h1>
+        <p>Hi ${body.client_name},</p>
+        <p>You have a new invoice due ${body.due_date}.</p>
+        <p><strong>Total:</strong> $${subtotal.toFixed(2)}</p>
+        <p><a href="${paymentUrl}">Pay invoice</a></p>
+      </main>
+    `,
+  });
+
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+  const { error: updateError } = await service
+    .from("invoices")
+    .update({ status: "sent" })
+    .eq("id", invoice.id);
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
+
+  await service.from("events").insert({
+    user_id: user.id,
+    kind: "invoice.sent",
+    payload: {
+      invoice_id: invoice.id,
+      client_email: body.client_email,
+      total: subtotal,
+    },
+  });
 
   return NextResponse.json({ id: invoice.id });
 }

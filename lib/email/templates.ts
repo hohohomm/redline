@@ -5,6 +5,7 @@ type ReminderInvoice = {
   total: number;
   due_date: string;
   id: string;
+  payment_url?: string;
 };
 
 const subjects: Record<ReminderStage, string> = {
@@ -27,6 +28,7 @@ export function reminderSubject(stage: ReminderStage) {
 
 export function reminderHtml(stage: ReminderStage, invoice: ReminderInvoice) {
   const total = Number(invoice.total).toFixed(2);
+  const paymentUrl = invoice.payment_url ?? `${process.env.APP_URL}/dashboard/invoices/${invoice.id}`;
 
   return `
     <main style="font-family: Arial, sans-serif; line-height: 1.5; color: #10131a;">
@@ -35,7 +37,7 @@ export function reminderHtml(stage: ReminderStage, invoice: ReminderInvoice) {
       <p>${messages[stage]}</p>
       <p><strong>Total:</strong> $${total}</p>
       <p><strong>Due date:</strong> ${invoice.due_date}</p>
-      <p><a href="/invoice/${invoice.id}">View invoice</a></p>
+      <p><a href="${paymentUrl}">Pay invoice</a></p>
     </main>
   `;
 }
