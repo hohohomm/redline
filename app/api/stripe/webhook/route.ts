@@ -31,13 +31,13 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
-  // Idempotency guard — Stripe retries on our errors. If we've seen this event_id, skip.
-  const { error: idempError } = await supabase
+  const { data: existingEvent } = await supabase
     .from("stripe_webhook_events")
-    .insert({ event_id: event.id });
+    .select("event_id")
+    .eq("event_id", event.id)
+    .maybeSingle();
 
-  if (idempError) {
-    // Duplicate primary key = already processed. Return 200 so Stripe stops retrying.
+  if (existingEvent) {
     return NextResponse.json({ received: true, duplicate: true });
   }
 
@@ -46,15 +46,34 @@ export async function POST(request: Request) {
     const invoiceId = session.metadata?.invoice_id;
 
     if (invoiceId) {
-      await supabase
+      const { data: invoice, error: updateError } = await supabase
         .from("invoices")
         .update({ status: "paid", paid_at: new Date().toISOString() })
-        .eq("id", invoiceId);
+        .eq("id", invoiceId)
+        .select("id, user_id")
+        .single();
 
-      await supabase.from("events").insert({
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      }
+
+      const { error: idempError } = await supabase
+        .from("stripe_webhook_events")
+        .insert({ event_id: event.id });
+
+      if (idempError) {
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+
+      const { error: eventError } = await supabase.from("events").insert({
+        user_id: invoice.user_id,
         kind: "invoice.paid",
         payload: { invoice_id: invoiceId, stripe_session_id: session.id, amount_total: session.amount_total },
       });
+
+      if (eventError) {
+        console.error("invoice.paid event insert failed", eventError.message);
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/resend";
+import { createInvoiceCheckoutUrl } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(
@@ -31,18 +32,30 @@ export async function POST(
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
+  const appUrl = process.env.APP_URL ?? new URL(_request.url).origin;
+  const paymentUrl = await createInvoiceCheckoutUrl({
+    invoiceId: invoice.id,
+    total: invoice.total,
+    clientName: invoice.client_name,
+    appUrl,
+  });
+
   await sendEmail({
     to: invoice.client_email,
     subject: "New invoice",
-    html: `<p>Hi ${invoice.client_name},</p><p>You have a new invoice for $${invoice.total} due ${invoice.due_date}.</p><p>Pay link coming in a follow-up reminder or ask for it directly.</p>`,
+    html: `<p>Hi ${invoice.client_name},</p><p>You have a new invoice for $${invoice.total} due ${invoice.due_date}.</p><p><a href="${paymentUrl}">Pay invoice</a></p>`,
   });
 
-  await service
+  const { error: updateError } = await service
     .from("invoices")
     .update({ status: "sent" })
     .eq("id", invoice.id);
 
-  await service.from("events").insert({
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
+
+  const { error: eventError } = await service.from("events").insert({
     user_id: user.id,
     kind: "invoice.sent",
     payload: {
@@ -51,6 +64,10 @@ export async function POST(
       total: invoice.total,
     },
   });
+
+  if (eventError) {
+    console.error("invoice.sent event insert failed", eventError.message);
+  }
 
   return NextResponse.json({ sent: true });
 }

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/resend";
 import { reminderHtml, reminderSubject } from "@/lib/email/templates";
 import { computeLateFee, type LateFeeType } from "@/lib/late-fee";
+import { createInvoiceCheckoutUrl } from "@/lib/stripe";
 
 type ReminderStage = 1 | 2 | 3 | 4;
 
@@ -72,6 +73,7 @@ export async function GET(request: Request) {
 
   // Dry-run mode — set DRY_RUN=true in Vercel env to test without sending emails.
   const dryRun = process.env.DRY_RUN === "true";
+  const appUrl = process.env.APP_URL ?? new URL(request.url).origin;
 
   const { data: invoices, error } = await supabase
     .from("invoices")
@@ -86,7 +88,7 @@ export async function GET(request: Request) {
   const now = new Date();
   let processed = 0;
 
-  for (const invoice of invoices) {
+  for (const invoice of invoices ?? []) {
     const dueDate = new Date(`${invoice.due_date}T00:00:00Z`);
     const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / 86400000);
     const targetStage = getTargetStage(daysOverdue);
@@ -96,46 +98,8 @@ export async function GET(request: Request) {
     }
 
     const stage = targetStage as ReminderStage;
-    let invoiceForEmail = invoice;
-
-    if (stage === 3 && Number(invoice.late_fee) === 0) {
-      const { data: settings } = await supabase
-        .from("user_settings")
-        .select("late_fee_type, late_fee_value, late_fee_after_days")
-        .eq("user_id", invoice.user_id)
-        .single<SettingsRow>();
-
-      const lateFeeType = settings?.late_fee_type ?? "percent";
-      const lateFeeValue = Number(settings?.late_fee_value ?? 5);
-      const lateFeeAfterDays = Number(settings?.late_fee_after_days ?? 21);
-
-      if (daysOverdue >= lateFeeAfterDays) {
-        const fee = computeLateFee(
-          Number(invoice.subtotal),
-          lateFeeType,
-          lateFeeValue,
-        );
-        const total = Number(invoice.subtotal) + fee;
-
-        const { error: feeError } = await supabase
-          .from("invoices")
-          .update({ late_fee: fee, total })
-          .eq("id", invoice.id);
-
-        if (feeError) {
-          return NextResponse.json({ error: feeError.message }, { status: 500 });
-        }
-
-        invoiceForEmail = {
-          ...invoice,
-          late_fee: fee,
-          total,
-        };
-      }
-    }
 
     if (dryRun) {
-      // Dry-run debug — only log outside production to avoid leaking client emails into prod logs.
       if (process.env.NODE_ENV !== "production") {
         console.log(`[dry-run] Would send stage ${stage} to ${invoice.client_email} for invoice ${invoice.id}`);
       }
@@ -143,17 +107,65 @@ export async function GET(request: Request) {
       continue;
     }
 
-    // Wrap real send + logs in try/catch so one bad invoice doesn't kill the whole batch.
     try {
+      let invoiceForEmail = invoice;
+
+      if (stage === 3 && Number(invoice.late_fee) === 0) {
+        const { data: settings } = await supabase
+          .from("user_settings")
+          .select("late_fee_type, late_fee_value, late_fee_after_days")
+          .eq("user_id", invoice.user_id)
+          .single<SettingsRow>();
+
+        const lateFeeType = settings?.late_fee_type ?? "percent";
+        const lateFeeValue = Number(settings?.late_fee_value ?? 5);
+        const lateFeeAfterDays = Number(settings?.late_fee_after_days ?? 21);
+
+        if (daysOverdue >= lateFeeAfterDays) {
+          const fee = computeLateFee(
+            Number(invoice.subtotal),
+            lateFeeType,
+            lateFeeValue,
+          );
+          const total = Number(invoice.subtotal) + fee;
+
+          const { error: feeError } = await supabase
+            .from("invoices")
+            .update({ late_fee: fee, total })
+            .eq("id", invoice.id);
+
+          if (feeError) {
+            throw new Error(feeError.message);
+          }
+
+          invoiceForEmail = {
+            ...invoice,
+            late_fee: fee,
+            total,
+          };
+        }
+      }
+
+      const paymentUrl = await createInvoiceCheckoutUrl({
+        invoiceId: invoice.id,
+        total: invoiceForEmail.total,
+        clientName: invoice.client_name,
+        appUrl,
+      });
+
       await sendEmail({
         to: invoice.client_email,
         subject: reminderSubject(stage),
-        html: reminderHtml(stage, invoiceForEmail),
+        html: reminderHtml(stage, { ...invoiceForEmail, payment_url: paymentUrl }),
       });
 
-      await supabase
+      const { error: logError } = await supabase
         .from("reminder_logs")
         .insert({ invoice_id: invoice.id, stage });
+
+      if (logError) {
+        throw new Error(logError.message);
+      }
 
       const updates: { last_reminder_stage: ReminderStage; status?: "overdue" } = {
         last_reminder_stage: stage,
@@ -163,16 +175,24 @@ export async function GET(request: Request) {
         updates.status = "overdue";
       }
 
-      await supabase
+      const { error: updateError } = await supabase
         .from("invoices")
         .update(updates)
         .eq("id", invoice.id);
 
-      await supabase.from("events").insert({
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      const { error: eventError } = await supabase.from("events").insert({
         user_id: invoice.user_id,
         kind: "reminder.sent",
         payload: { invoice_id: invoice.id, stage, client_email: invoice.client_email },
       });
+
+      if (eventError) {
+        throw new Error(eventError.message);
+      }
 
       processed += 1;
     } catch (err) {
@@ -185,10 +205,16 @@ export async function GET(request: Request) {
     }
   }
 
-  await supabase.from("events").insert({
-    kind: "cron.ran",
-    payload: { processed, dryRun },
-  });
+  if (!dryRun) {
+    const { error: eventError } = await supabase.from("events").insert({
+      kind: "cron.ran",
+      payload: { processed, dryRun },
+    });
+
+    if (eventError) {
+      return NextResponse.json({ error: eventError.message }, { status: 500 });
+    }
+  }
 
   return NextResponse.json({ processed, dryRun });
 }
