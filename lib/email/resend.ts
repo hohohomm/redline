@@ -10,8 +10,7 @@ export async function sendEmail({ to, subject, html }: SendEmailArgs) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   const result = await resend.emails.send({
-    // Swap after DNS setup.
-    from: "invoices@example.com",
+    from: "RedLine <invoices@redlineinvoices.com>",
     to,
     subject,
     html,
