@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -54,12 +54,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen antialiased">
         {children}
-        <Script
-          defer
-          data-domain="redlineinvoices.com"
-          src="https://plausible.io/js/script.js"
-          strategy="afterInteractive"
-        />
+        <Analytics />
       </body>
     </html>
   );

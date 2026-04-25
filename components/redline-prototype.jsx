@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useScroll, useTransform, motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 
 
 
@@ -1194,7 +1194,7 @@ const HowItWorks = () => {
     },
   ];
   return (
-    <section id="how" style={{ padding: "110px 28px 40px", position: "relative" }}>
+    <section id="how" style={{ padding: "128px 28px 88px", position: "relative" }}>
       <div style={{ maxWidth: 1320, margin: "0 auto" }}>
         <div style={{ maxWidth: 640, marginBottom: 56 }}>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#ff7468", letterSpacing: 1, marginBottom: 14 }}>
@@ -1339,7 +1339,7 @@ const SequenceDeepDive = () => {
     return () => clearInterval(id);
   }, []);
   return (
-    <section id="sequence" style={{ padding: "80px 28px", position: "relative" }}>
+    <section id="sequence" style={{ padding: "108px 28px 108px", position: "relative" }}>
       <div
         style={{
           maxWidth: 1320,
@@ -1428,7 +1428,7 @@ const PricingSection = ({ onNav }) => {
     },
   ];
   return (
-    <section id="pricing" style={{ padding: "80px 28px 60px", borderTop: "1px solid var(--hair)" }}>
+    <section id="pricing" style={{ padding: "108px 28px 100px", borderTop: "1px solid var(--hair)" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 44 }}>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#ff7468", letterSpacing: 1, marginBottom: 10 }}>
@@ -1518,7 +1518,7 @@ const FaqSection = () => {
   ];
   const [open, setOpen] = React.useState(0);
   return (
-    <section id="faq" style={{ padding: "60px 28px 80px" }}>
+    <section id="faq" style={{ padding: "100px 28px 100px" }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#ff7468", letterSpacing: 1, marginBottom: 10, textAlign: "center" }}>
           FAQ
@@ -1575,7 +1575,7 @@ const FaqSection = () => {
 };
 
 const FinalCta = ({ onNav }) => (
-  <section style={{ padding: "80px 28px 100px", position: "relative", overflow: "hidden" }}>
+  <section style={{ padding: "100px 28px 124px", position: "relative", overflow: "hidden" }}>
     <div
       style={{
         position: "absolute",
@@ -1642,129 +1642,135 @@ const LandingFooter = () => (
   </footer>
 );
 
-const ScrollLine = () => {
-  const [isMobile, setIsMobile] = React.useState(false);
+// Glowing red rail — segment that sits BETWEEN sections.
+// Vertical pipe with a single bezier kink and a glowing node.
+// Path draws + node ignites when the segment scrolls into view.
+// Replaces the old fixed-overlay ScrollLine.
+const SectionRail = ({ label, side = "center" }) => {
+  const ref = React.useRef(null);
+  const inView = useInView(ref, { amount: 0.6, once: false });
 
-  React.useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
+  const offsetX = side === "left" ? 14 : side === "right" ? 46 : 30;
 
-  const { scrollYProgress } = useScroll();
-  const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const sparkOpacity = useTransform(scrollYProgress, [0, 0.04, 0.96, 1], [0, 1, 1, 0]);
-
-  const desktopPath =
-    "M 82 6 " +
-    "C 82 18, 64 24, 43 31 " +
-    "C 22 38, 9 49, 18 59 " +
-    "C 30 72, 72 69, 78 82 " +
-    "C 84 93, 58 93, 50 98";
-
-  const mobilePath =
-    "M 50 7 " +
-    "C 70 22, 30 42, 50 62 " +
-    "C 65 76, 35 88, 50 98";
-
-  const d = isMobile ? mobilePath : desktopPath;
-  const sparkX = useTransform(
-    scrollYProgress,
-    [0, 0.18, 0.34, 0.5, 0.68, 0.84, 1],
-    isMobile ? [50, 64, 38, 50, 60, 40, 50] : [82, 72, 48, 18, 40, 78, 50],
-  );
-  const sparkY = useTransform(
-    scrollYProgress,
-    [0, 0.18, 0.34, 0.5, 0.68, 0.84, 1],
-    isMobile ? [7, 23, 42, 62, 76, 88, 98] : [6, 20, 30, 58, 70, 82, 98],
-  );
+  // Subtle bezier kink toward the requested side
+  const d =
+    side === "left"
+      ? "M 30 0 C 30 28, 14 50, 14 72 C 14 92, 30 110, 30 120"
+      : side === "right"
+        ? "M 30 0 C 30 28, 46 50, 46 72 C 46 92, 30 110, 30 120"
+        : "M 30 0 C 30 30, 30 60, 30 90 L 30 120";
 
   return (
-    <svg
+    <div
+      ref={ref}
       aria-hidden="true"
       style={{
-        position: "fixed",
-        inset: 0,
-        width: "100vw",
-        height: "100vh",
-        zIndex: 5,
+        position: "relative",
+        height: 132,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "stretch",
         pointerEvents: "none",
-        overflow: "visible",
       }}
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
     >
-      <path
-        d={d}
-        fill="none"
-        stroke="rgba(255,255,255,0.07)"
-        strokeWidth="1"
-        strokeLinecap="round"
-        strokeDasharray="2 7"
-      />
-      <motion.path
-        d={d}
-        fill="none"
-        stroke="#ff4b3e"
-        strokeWidth="6"
-        strokeLinecap="round"
+      <svg
+        width="60"
+        height="132"
+        viewBox="0 0 60 132"
         style={{
-          pathLength,
-          filter:
-            "drop-shadow(0 0 24px rgba(255,75,62,0.3)) drop-shadow(0 0 48px rgba(255,75,62,0.15))",
-          opacity: 0.35,
+          overflow: "visible",
+          filter: inView
+            ? "drop-shadow(0 0 6px rgba(255,75,62,0.55)) drop-shadow(0 0 24px rgba(255,75,62,0.25))"
+            : "drop-shadow(0 0 0 rgba(255,75,62,0))",
+          transition: "filter 600ms var(--ease-out)",
         }}
-      />
-      <motion.path
-        d={d}
-        fill="none"
-        stroke="#ff4b3e"
-        strokeWidth="2"
-        strokeLinecap="round"
-        style={{
-          pathLength,
-          filter:
-            "drop-shadow(0 0 8px rgba(255,75,62,0.6)) drop-shadow(0 0 24px rgba(255,75,62,0.3))",
-        }}
-      />
-      <motion.circle
-        cx={sparkX}
-        cy={sparkY}
-        r="1.8"
-        fill="#ff4b3e"
-        style={{
-          opacity: sparkOpacity,
-          filter:
-            "drop-shadow(0 0 10px rgba(255,75,62,0.9)) drop-shadow(0 0 28px rgba(255,75,62,0.45))",
-        }}
-      />
-      <motion.circle
-        cx={sparkX}
-        cy={sparkY}
-        r="4.4"
-        fill="none"
-        stroke="#ff4b3e"
-        strokeWidth="0.35"
-        style={{
-          opacity: sparkOpacity,
-        }}
-      />
-    </svg>
+      >
+        {/* faint guide rail */}
+        <path
+          d={d}
+          fill="none"
+          stroke="rgba(255,75,62,0.08)"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+        {/* outer glow trace */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff4b3e"
+          strokeWidth="5"
+          strokeLinecap="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={inView ? { pathLength: 1, opacity: 0.28 } : { pathLength: 0.15, opacity: 0.06 }}
+          transition={{ pathLength: { duration: 1.1, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.4 } }}
+        />
+        {/* hot inner stroke */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff6a5a"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={inView ? { pathLength: 1, opacity: 1 } : { pathLength: 0.15, opacity: 0.25 }}
+          transition={{ pathLength: { duration: 1.2, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.5 } }}
+        />
+        {/* central node — pulses when active */}
+        <motion.circle
+          cx={offsetX}
+          cy="62"
+          r="3.2"
+          fill="#ff4b3e"
+          initial={{ scale: 0.4, opacity: 0 }}
+          animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.55, opacity: 0.35 }}
+          transition={{ duration: 0.55, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        />
+        {/* node halo */}
+        <motion.circle
+          cx={offsetX}
+          cy="62"
+          r="9"
+          fill="none"
+          stroke="rgba(255,75,62,0.45)"
+          strokeWidth="0.6"
+          initial={{ scale: 0.4, opacity: 0 }}
+          animate={inView ? { scale: [0.6, 1.4, 1], opacity: [0, 0.7, 0.35] } : { scale: 0.6, opacity: 0 }}
+          transition={{ duration: 1.4, delay: 0.4, repeat: inView ? Infinity : 0, repeatDelay: 1.6 }}
+        />
+        {label && (
+          <text
+            x={offsetX + 14}
+            y="65"
+            fill={inView ? "rgba(255,106,90,0.85)" : "rgba(255,75,62,0.35)"}
+            fontSize="9"
+            fontFamily="var(--font-mono, monospace)"
+            letterSpacing="0.18em"
+            style={{ transition: "fill 500ms var(--ease-out)" }}
+          >
+            {label}
+          </text>
+        )}
+      </svg>
+    </div>
   );
 };
 
 const LandingPage = ({ onNav }) => {
   return (
     <div style={{ minHeight: "100vh", background: "var(--graphite-900)", color: "var(--warm-white)" }}>
-      <ScrollLine />
       <LandingNav onNav={onNav} />
       <HeroSection onNav={onNav} />
+      <SectionRail label="01" side="left" />
       <BenefitsStrip />
+      <SectionRail label="02" side="right" />
       <HowItWorks />
+      <SectionRail label="03" side="left" />
       <SequenceDeepDive />
+      <SectionRail label="04" side="right" />
       <PricingSection onNav={onNav} />
+      <SectionRail label="05" side="left" />
       <FaqSection />
+      <SectionRail label="06" side="center" />
       <FinalCta onNav={onNav} />
       <LandingFooter />
     </div>
