@@ -32,11 +32,18 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isDashboard = path.startsWith("/dashboard");
+  const isLogin = path === "/login";
 
   if (isDashboard && !user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (isLogin && user) {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = "/dashboard";
+    return NextResponse.redirect(dashboardUrl);
   }
 
   return response;

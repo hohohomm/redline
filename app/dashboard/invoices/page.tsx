@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DashboardShell, InvoiceActions } from "@/components/redline-prototype";
+import { PayLinkButton } from "@/components/pay-link-button";
 import { createClient } from "@/lib/supabase/server";
 
 const money = new Intl.NumberFormat("en-US", {
@@ -34,6 +35,7 @@ export default async function InvoicesListPage() {
               <th style={{ padding: "10px 8px", borderBottom: "1px solid var(--hair)" }}>Amount</th>
               <th style={{ padding: "10px 8px", borderBottom: "1px solid var(--hair)" }}>Due</th>
               <th style={{ padding: "10px 8px", borderBottom: "1px solid var(--hair)" }}>Status</th>
+              <th style={{ padding: "10px 8px", borderBottom: "1px solid var(--hair)" }}>Pay link</th>
               <th style={{ padding: "10px 8px", borderBottom: "1px solid var(--hair)" }}>Actions</th>
             </tr>
           </thead>
@@ -56,13 +58,16 @@ export default async function InvoicesListPage() {
                   {invoice.status}
                 </td>
                 <td style={{ padding: "12px 8px", borderBottom: "1px solid var(--hair-soft)" }}>
+                  <PayLinkButton invoiceId={invoice.id} />
+                </td>
+                <td style={{ padding: "12px 8px", borderBottom: "1px solid var(--hair-soft)" }}>
                   <InvoiceActions id={invoice.id} status={invoice.status} />
                 </td>
               </tr>
             ))}
             {(invoices ?? []).length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: 20, color: "var(--ash)" }}>
+                <td colSpan={6} style={{ padding: 20, color: "var(--ash)" }}>
                   No invoices yet.
                 </td>
               </tr>

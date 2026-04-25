@@ -1672,8 +1672,8 @@ const LandingFooter = () => (
       <WordMark size={14} />
       <div style={{ display: "flex", gap: 22 }}>
         <a href="/contact" style={footerLinkStyle}>Contact</a>
-        <a style={footerLinkStyle}>Privacy</a>
-        <a style={footerLinkStyle}>Terms</a>
+        <a href="/privacy" style={footerLinkStyle}>Privacy</a>
+        <a href="/terms" style={footerLinkStyle}>Terms</a>
         <a href="mailto:support@redlineinvoices.com" style={footerLinkStyle}>support@redlineinvoices.com</a>
       </div>
       <div>© 2026 Redline Labs</div>
@@ -2071,6 +2071,12 @@ const DashboardShell = ({ route, onNav, children }) => {
     window.location.href = routeTargets[id] || "/dashboard";
   };
 
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
   const NavItem = ({ id, icon, label, badge, active }) => (
     <button
       onClick={() => navigate(id)}
@@ -2132,11 +2138,9 @@ const DashboardShell = ({ route, onNav, children }) => {
 
         <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
           <NavItem id="settings" icon={<Icon.cog s={14} />} label="Settings" active={route === "settings"} />
-          <form action="/api/auth/signout" method="post" style={{ marginTop: 8 }}>
-            <Button variant="ghost" size="md" full type="submit" icon={<Icon.arrow s={14} />}>
-              Sign out
-            </Button>
-          </form>
+          <Button variant="ghost" size="md" full icon={<Icon.arrow s={14} />} onClick={handleLogout} style={{ marginTop: 8 }}>
+            Logout
+          </Button>
         </div>
 
         {/* Operator status card */}
