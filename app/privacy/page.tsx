@@ -1,3 +1,5 @@
+import { LegalPage } from "@/components/legal-page";
+
 const privacyText = `PRIVACY POLICY
 
 Last updated: 25 April 2026
@@ -11,7 +13,9 @@ If you have questions about this policy, contact us at support@redlineinvoices.c
 
 1. WHAT INFORMATION WE COLLECT
 
-a) Information you give us directly
+We collect three categories of information.
+
+a) Information you give us directly:
 
 - Name, email address, and password when you create an account.
 - Business name, ABN, address, and other business details you add to your profile.
@@ -20,14 +24,14 @@ a) Information you give us directly
 - Client contact details you provide (names and email addresses of your invoice recipients).
 - Support enquiries and correspondence you send to us.
 
-b) Information collected automatically
+b) Information collected automatically:
 
 - Log data: IP address, browser type, pages visited, timestamps, and referring URLs when you access the Service.
 - Device information: operating system, device type, and browser version.
 - Cookies and similar tracking technologies (see Section 8).
 - Usage data: features you use, actions you take, and frequency of use.
 
-c) Information from third parties
+c) Information from third parties:
 
 - Payment confirmation and status information from Stripe.
 - Authentication tokens from Supabase when you log in.
@@ -64,30 +68,11 @@ When you use RedLine you provide contact information for your clients (invoice r
 
 We share data with the following third-party service providers to operate the Service. Each acts as a sub-processor under our instructions.
 
-Supabase (Supabase Inc.)
-Role: Database storage and user authentication.
-Data shared: Account data, invoice data, client contact details.
-Privacy policy: supabase.com/privacy
-
-Vercel (Vercel Inc.)
-Role: Cloud hosting and edge functions.
-Data shared: Log data and request metadata.
-Privacy policy: vercel.com/legal/privacy-policy
-
-Stripe (Stripe, Inc.)
-Role: Payment processing.
-Data shared: Payment card details and billing information.
-Privacy policy: stripe.com/privacy
-
-Resend (Resend Inc.)
-Role: Transactional email delivery.
-Data shared: Email addresses and email content of outbound messages.
-Privacy policy: resend.com/legal/privacy-policy
-
-Cloudflare (Cloudflare, Inc.)
-Role: DNS, CDN, and security (DDoS protection, WAF).
-Data shared: IP addresses and request metadata.
-Privacy policy: cloudflare.com/privacypolicy
+- Supabase (Supabase Inc.): database storage and user authentication. Data shared: account data, invoice data, client contact details. Privacy policy: supabase.com/privacy.
+- Vercel (Vercel Inc.): cloud hosting and edge functions. Data shared: log data and request metadata. Privacy policy: vercel.com/legal/privacy-policy.
+- Stripe (Stripe, Inc.): payment processing. Data shared: payment card details and billing information. Privacy policy: stripe.com/privacy.
+- Resend (Resend Inc.): transactional email delivery. Data shared: email addresses and email content of outbound messages. Privacy policy: resend.com/legal/privacy-policy.
+- Cloudflare (Cloudflare, Inc.): DNS, CDN, and security (DDoS protection, WAF). Data shared: IP addresses and request metadata. Privacy policy: cloudflare.com/privacypolicy.
 
 We require all sub-processors to protect your data in a manner consistent with this policy. We do not authorise any sub-processor to use your data for their own purposes beyond what is needed to provide their service to us.
 
@@ -171,29 +156,6 @@ Email: support@redlineinvoices.com
 Website: redlineinvoices.com
 New South Wales, Australia`;
 
-const paragraphs = privacyText.split(/\n{2,}/);
-
 export default function PrivacyPage() {
-  return (
-    <main
-      style={{
-        maxWidth: 680,
-        margin: "0 auto",
-        minHeight: "100vh",
-        padding: "48px 24px",
-        background: "#08090b",
-        color: "#f5f1ea",
-        fontFamily: "var(--font-sans)",
-      }}
-    >
-      <a href="/" style={{ color: "#f5f1ea" }}>
-        Back
-      </a>
-      {paragraphs.map((paragraph) => (
-        <p key={paragraph} style={{ lineHeight: 1.7, whiteSpace: "pre-line" }}>
-          {paragraph}
-        </p>
-      ))}
-    </main>
-  );
+  return <LegalPage raw={privacyText} />;
 }

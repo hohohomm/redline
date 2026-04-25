@@ -1,3 +1,5 @@
+import { LegalPage } from "@/components/legal-page";
+
 const termsText = `TERMS OF SERVICE
 
 Last updated: 25 April 2026
@@ -51,21 +53,40 @@ The Service sends automated reminder emails to your invoice recipients on your b
 We are a tool, not a party to any transaction between you and your clients. We accept no liability for the content of emails sent or for any commercial outcome.
 
 
-7. LATE FEES
+7. SPAM ACT 2003 (CTH) AND ELECTRONIC COMMUNICATIONS
+
+You are solely responsible for compliance with the Spam Act 2003 (Cth) and equivalent laws in any other jurisdiction in which your clients are located. You warrant that, at all times when using the Service to send emails:
+
+- You have the consent of each recipient (express, inferred, or deemed under the Spam Act 2003 (Cth)) to receive the emails sent on your behalf.
+- All emails sent through the Service contain accurate sender identification.
+- You will honour any unsubscribe or opt-out request within 5 business days of receipt.
+- You will not use the Service to send any communication that is misleading, deceptive, or in breach of the Australian Consumer Law.
+
+We may suspend or terminate your account if we receive credible reports of non-compliant sending or if we reasonably believe you are in breach of this section.
+
+
+8. NO ADVISORY RELATIONSHIP
+
+The Service is a tool, not a provider of legal, financial, accounting, taxation, or business advice. Any information generated, suggested, or surfaced by the Service (including suggested late fees, follow-up timing, template wording, or cashflow projections) is for general informational purposes only.
+
+You should obtain independent professional advice before relying on any output of the Service for any matter that may have legal, financial, or commercial consequences. We are not your lawyer, accountant, financial adviser, or business adviser.
+
+
+9. LATE FEES
 
 If your plan includes a late-fee calculation feature, the amounts shown are generated based on the data you provide. You are solely responsible for verifying that any late fees you charge your clients are lawful under your agreements with them and under applicable law.
 
 
-8. PAYMENTS
+10. PAYMENTS
 
 The Service is billed in Australian Dollars (AUD) on a subscription basis. Prices are shown on the pricing page and may be updated from time to time with 30 days notice.
 
 All payments are processed by Stripe. By providing payment details you agree to Stripe's terms of service. We do not store your full card details.
 
-Subscription fees are charged at the start of each billing period. All fees are non-refundable except as described in Section 9.
+Subscription fees are charged at the start of each billing period. All fees are non-refundable except as described in Section 11.
 
 
-9. REFUNDS
+11. REFUNDS
 
 We do not offer refunds for partial periods of service. If you cancel, your access continues until the end of the current billing period and no further charges are made.
 
@@ -74,14 +95,14 @@ If you believe you have been charged in error, contact us within 14 days at supp
 At our sole discretion we may issue credits or refunds in exceptional circumstances.
 
 
-10. CANCELLATION
+12. CANCELLATION
 
 You may cancel your subscription at any time from within the account settings. Cancellation takes effect at the end of the current billing period. You retain access to the Service until that date.
 
 We may cancel your account if you are in breach of these Terms, if your payment fails and is not remedied within 7 days, or if we decide to discontinue the Service (with 30 days notice where possible).
 
 
-11. TERMINATION
+13. TERMINATION
 
 On termination for any reason:
 
@@ -90,26 +111,26 @@ On termination for any reason:
 - After 30 days we will delete your account data from our systems, subject to any legal retention obligations.
 
 
-12. DATA OWNERSHIP
+14. DATA OWNERSHIP
 
 You own all data you upload to the Service, including your client contact details, invoice information, and business data ("Your Data"). We do not claim any ownership over Your Data.
 
 You grant us a limited licence to store, process, and use Your Data solely to provide the Service to you.
 
 
-13. CUSTOMER DATA AND CLIENT PRIVACY
+15. CUSTOMER DATA AND CLIENT PRIVACY
 
 When you use the Service you provide contact details for your clients (invoice recipients). You are the data controller for your clients' personal information. We process that information as your data processor, acting only on your instructions.
 
 You are responsible for ensuring your use of your clients' data complies with all applicable privacy laws, including the Australian Privacy Act 1988 (Cth).
 
 
-14. PRIVACY
+16. PRIVACY
 
 Our Privacy Policy (available at redlineinvoices.com/privacy) explains how we collect and handle personal information. By using the Service you agree to our Privacy Policy.
 
 
-15. THIRD-PARTY SUB-PROCESSORS
+17. THIRD-PARTY SUB-PROCESSORS
 
 We use the following sub-processors to deliver the Service:
 
@@ -122,12 +143,12 @@ We use the following sub-processors to deliver the Service:
 Each of these providers has its own terms of service and privacy policy. We are not responsible for the acts or omissions of these third parties, but we take reasonable steps to select providers with appropriate data protection standards.
 
 
-16. EMAIL DELIVERY
+18. EMAIL DELIVERY
 
 Delivery of emails sent by the Service depends on Resend and the email infrastructure of your clients' email providers. We do not guarantee that emails will be delivered, opened, or acted upon. Factors outside our control (spam filters, full inboxes, etc.) may affect delivery.
 
 
-17. ACCEPTABLE USE
+19. ACCEPTABLE USE
 
 You may not use the Service to:
 
@@ -139,74 +160,83 @@ You may not use the Service to:
 We reserve the right to review and remove any content that we believe violates these Terms.
 
 
-18. INTELLECTUAL PROPERTY
+20. INTELLECTUAL PROPERTY
 
 All software, design, text, and other materials that make up the Service (excluding Your Data) are owned by or licensed to Phillip Preketes. You are granted a limited, non-exclusive, non-transferable licence to use the Service for your internal business purposes during the term of your subscription.
 
 You may not reproduce, modify, distribute, or create derivative works from any part of the Service without our written permission.
 
 
-19. SERVICE AVAILABILITY
+21. SERVICE AVAILABILITY
 
 We aim to provide a reliable service but we do not guarantee 100% uptime. We may take the Service down for maintenance. We will try to give advance notice of planned downtime where possible.
 
 We are not liable for any loss caused by unavailability of the Service.
 
 
-20. BETA FEATURES
+22. BETA FEATURES
 
 From time to time we may make beta or experimental features available. These are provided "as is" without any warranty. We may modify or remove them at any time without notice.
 
 
-21. DISCLAIMERS
+23. DISCLAIMERS
 
 THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE". TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
 
 WE DO NOT WARRANT THAT THE SERVICE WILL BE ERROR-FREE, UNINTERRUPTED, SECURE, OR FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.
 
 
-22. LIMITATION OF LIABILITY
+24. LIMITATION OF LIABILITY
 
 TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW:
 
-- WE WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES.
-- OUR TOTAL LIABILITY TO YOU FOR ANY CLAIM ARISING OUT OF OR RELATED TO THESE TERMS OR THE SERVICE WILL NOT EXCEED THE TOTAL FEES PAID BY YOU IN THE THREE (3) MONTHS IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM.
+- WE WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, LOSS OF REVENUE, LOSS OF GOODWILL, LOSS OF BUSINESS OPPORTUNITY, OR LOSS OF DATA.
+- OUR TOTAL AGGREGATE LIABILITY TO YOU FOR ANY AND ALL CLAIMS ARISING OUT OF OR RELATED TO THESE TERMS OR THE SERVICE WILL NOT EXCEED THE TOTAL FEES PAID BY YOU IN THE THREE (3) MONTHS IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM, OR ONE HUNDRED AUSTRALIAN DOLLARS (AUD $100), WHICHEVER IS GREATER.
 
-NOTHING IN THESE TERMS EXCLUDES LIABILITY THAT CANNOT BE EXCLUDED UNDER APPLICABLE LAW, INCLUDING THE AUSTRALIAN CONSUMER LAW.
+NOTHING IN THESE TERMS EXCLUDES, RESTRICTS, OR MODIFIES ANY GUARANTEE, RIGHT, OR REMEDY THAT CANNOT LAWFULLY BE EXCLUDED, RESTRICTED, OR MODIFIED, INCLUDING UNDER THE AUSTRALIAN CONSUMER LAW (SCHEDULE 2 TO THE COMPETITION AND CONSUMER ACT 2010 (CTH)). WHERE OUR LIABILITY UNDER THE AUSTRALIAN CONSUMER LAW CANNOT BE EXCLUDED, OUR LIABILITY IS LIMITED, TO THE EXTENT PERMITTED BY LAW, TO THE RESUPPLY OF THE SERVICE OR PAYMENT OF THE COST OF RESUPPLY.
 
 
-23. INDEMNITY
+25. INDEMNITY
 
-You agree to indemnify and hold harmless Phillip Preketes and any officers, employees, or contractors from and against any claims, losses, damages, liabilities, costs, and expenses (including reasonable legal fees) arising out of or related to:
+You agree to indemnify, defend, and hold harmless Phillip Preketes and any officers, employees, contractors, and agents from and against any and all claims, losses, damages, liabilities, costs, and expenses (including reasonable legal fees on a solicitor-client basis) arising out of or related to:
 
 - Your use of the Service in breach of these Terms.
-- Your Data, including any claim that it infringes a third party's rights.
-- Your communications with your clients.
+- Your Data, including any claim that it infringes a third party's rights or breaches any law.
+- Your communications with your clients (including under the Spam Act 2003 (Cth) or any equivalent law).
+- Any tax, financial, or commercial decision you take in reliance on output from the Service.
 
 
-24. CHANGES TO THESE TERMS
+26. FORCE MAJEURE
+
+We are not liable for any failure or delay in performing our obligations under these Terms where the failure or delay is caused by events beyond our reasonable control, including but not limited to: failure or degradation of internet infrastructure or third-party providers (including any of our sub-processors listed in Section 17); natural disasters; fire; flood; pandemic; epidemic; act of God; act of war or terrorism; civil unrest; government action, regulation, or sanction; cyberattack, distributed-denial-of-service attack, or other malicious interference with our systems; or labour disputes.
+
+If a force majeure event prevents us from providing the Service for more than 30 consecutive days, either party may terminate these Terms by written notice with no further liability beyond fees already accrued.
+
+
+27. CHANGES TO THESE TERMS
 
 We may update these Terms from time to time. If we make material changes we will notify you by email to the address on your account or by a prominent notice on the Service at least 14 days before the changes take effect.
 
 Your continued use of the Service after the effective date of the updated Terms constitutes your acceptance of the changes. If you do not accept the changes, you must stop using the Service and cancel your account.
 
 
-25. GOVERNING LAW AND DISPUTE RESOLUTION
+28. GOVERNING LAW AND DISPUTE RESOLUTION
 
-These Terms are governed by the laws of New South Wales, Australia. You agree to submit to the non-exclusive jurisdiction of the courts of New South Wales for the resolution of any dispute arising under these Terms.
+These Terms are governed by and construed in accordance with the laws of New South Wales, Australia, and the Commonwealth laws of Australia applicable in that State. You submit to the non-exclusive jurisdiction of the courts of New South Wales for the resolution of any dispute arising under these Terms.
 
-Before commencing legal proceedings, both parties agree to attempt to resolve any dispute by good-faith negotiation for at least 30 days.
-
-
-26. GENERAL
-
-- Entire agreement: These Terms (together with our Privacy Policy) constitute the entire agreement between you and us regarding the Service.
-- Severability: If any provision is found unenforceable, the remaining provisions continue in full force.
-- No waiver: Failure to enforce any provision does not waive our right to enforce it in the future.
-- Assignment: You may not assign your rights under these Terms without our written consent. We may assign ours without restriction.
+Before commencing legal proceedings, both parties agree to attempt to resolve any dispute by good-faith negotiation for at least 30 days, and where appropriate to attempt mediation through a body such as the Resolution Institute or the NSW Civil and Administrative Tribunal where it has jurisdiction.
 
 
-27. CONTACT
+29. GENERAL
+
+- Entire agreement: These Terms (together with our Privacy Policy) constitute the entire agreement between you and us regarding the Service and supersede all prior agreements, understandings, and representations.
+- Severability: If any provision of these Terms is held to be invalid or unenforceable by a court of competent jurisdiction, the remaining provisions continue in full force and effect.
+- No waiver: Failure or delay by us in enforcing any provision does not constitute a waiver of our right to enforce that or any other provision in the future.
+- Assignment: You may not assign your rights under these Terms without our prior written consent. We may assign or transfer our rights and obligations to any successor in business or to any company within our group without restriction.
+- Survival: Sections 14, 15, 23, 24, 25, 26, and 28 survive termination of these Terms.
+
+
+30. CONTACT
 
 For any questions about these Terms, contact:
 
@@ -215,29 +245,6 @@ Email: support@redlineinvoices.com
 Website: redlineinvoices.com
 New South Wales, Australia`;
 
-const paragraphs = termsText.split(/\n{2,}/);
-
 export default function TermsPage() {
-  return (
-    <main
-      style={{
-        maxWidth: 680,
-        margin: "0 auto",
-        minHeight: "100vh",
-        padding: "48px 24px",
-        background: "#08090b",
-        color: "#f5f1ea",
-        fontFamily: "var(--font-sans)",
-      }}
-    >
-      <a href="/" style={{ color: "#f5f1ea" }}>
-        Back
-      </a>
-      {paragraphs.map((paragraph) => (
-        <p key={paragraph} style={{ lineHeight: 1.7, whiteSpace: "pre-line" }}>
-          {paragraph}
-        </p>
-      ))}
-    </main>
-  );
+  return <LegalPage raw={termsText} />;
 }

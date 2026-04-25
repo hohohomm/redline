@@ -5,7 +5,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: invoices } = await supabase
     .from("invoices")
-    .select("id, client_name, client_email, total, status, due_date, created_at, last_reminder_stage")
+    .select("id, client_name, client_email, total, status, due_date, created_at, paid_at, last_reminder_stage")
     .order("created_at", { ascending: false });
 
   return (

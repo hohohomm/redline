@@ -1,12 +1,11 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useScroll, useTransform, motion } from "framer-motion";
 
 
-
-// BrandMark — abstract coral slash on graphite, readable at 16px
-// This is the APP ICON, not the mascot. Deterministic CSS/SVG only.
 
 const BrandMark = ({ size = 32, glow = false }) => {
   const r = Math.max(4, size * 0.22);
@@ -16,8 +15,7 @@ const BrandMark = ({ size = 32, glow = false }) => {
         width: size,
         height: size,
         borderRadius: r,
-        position: "relative",
-        background: "linear-gradient(145deg, #17181d 0%, #0a0b0e 100%)",
+        background: "var(--graphite-900) url('/assets/redline-icon.png') center / cover no-repeat",
         boxShadow: glow
           ? "0 0 0 1px rgba(255,255,255,0.08), 0 10px 30px -10px rgba(255,58,48,0.5), inset 0 1px 0 rgba(255,255,255,0.05)"
           : "0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
@@ -25,45 +23,8 @@ const BrandMark = ({ size = 32, glow = false }) => {
         flexShrink: 0,
         display: "inline-block",
       }}
-    >
-      <svg
-        viewBox="0 0 32 32"
-        width={size}
-        height={size}
-        style={{ display: "block" }}
-      >
-        <defs>
-          <linearGradient id={`rl-slash-${size}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#ff6a5a" />
-            <stop offset="100%" stopColor="#9b1c1f" />
-          </linearGradient>
-          <filter id={`rl-blur-${size}`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="1.2" />
-          </filter>
-        </defs>
-        {/* soft red underglow */}
-        <rect
-          x="6"
-          y="6"
-          width="20"
-          height="20"
-          rx="3"
-          fill="#ff4b3e"
-          opacity="0.25"
-          filter={`url(#rl-blur-${size})`}
-        />
-        {/* the mark: diagonal slash — "redline" */}
-        <path
-          d="M 9 21 L 21 9"
-          stroke={`url(#rl-slash-${size})`}
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* small accent dot, echoes the tie */}
-        <circle cx="22.5" cy="21" r="1.6" fill="#ff4b3e" />
-      </svg>
-    </div>
+      aria-hidden="true"
+    />
   );
 };
 
@@ -482,10 +443,10 @@ const Icon = {
 
 const REMINDER_STAGES = [
   { id: "sent", label: "Invoice sent", tone: "ok", when: "Day 0", copy: "Payment link delivered. Read at 09:12.", voice: "clean hand-off" },
-  { id: "due-soon", label: "Due-soon nudge", tone: "amber", when: "Day 6", copy: "\"Quick heads up — this is due Friday.\"", voice: "friendly reminder" },
-  { id: "due", label: "Day of, soft nudge", tone: "amber", when: "Day 10", copy: "\"Due today. Here's the link again.\"", voice: "no pressure" },
-  { id: "late", label: "Overdue, firmer", tone: "red", when: "Day 13", copy: "\"This one slipped past. Can you settle today?\"", voice: "direct, not cold" },
-  { id: "fee", label: "1.5% late fee applied", tone: "red", when: "Day 17", copy: "Auto-applied per your terms. Client notified.", voice: "operational" },
+  { id: "friendly", label: "Friendly reminder", tone: "amber", when: "7d overdue", copy: "\"Quick heads up — here's the payment link again.\"", voice: "friendly reminder" },
+  { id: "direct", label: "Direct reminder", tone: "amber", when: "14d overdue", copy: "\"This one is still open. Can you settle today?\"", voice: "direct, not cold" },
+  { id: "fee", label: "Late-fee notice", tone: "red", when: "21d overdue", copy: "Fee applied per your settings. Client notified.", voice: "operational" },
+  { id: "final", label: "Final notice", tone: "red", when: "30d overdue", copy: "Final collection notice sent with payment link.", voice: "firm" },
   { id: "paid", label: "Marked paid", tone: "ok", when: "—", copy: "Thanks sent. Thread archived.", voice: "done" },
 ];
 
@@ -1070,7 +1031,7 @@ const HeroSection = ({ onNav }) => {
             >
               <Icon.bolt s={10} />
             </span>
-            Redline v0.4 — now with auto late fees
+            Beta · invite only
           </div>
 
           <h1
@@ -1222,7 +1183,7 @@ const HowItWorks = () => {
     {
       n: "02",
       title: "Let Rei handle the follow-up.",
-      body: "Your operator nudges the client on day 6, day 10, and gets firmer if it slips. You never have to write \"just circling back\" again.",
+      body: "Your operator starts at 7 days overdue, escalates at 14, applies your late-fee rule at 21, and sends final notice at 30.",
       mock: <MockSequenceCard />,
     },
     {
@@ -1681,9 +1642,122 @@ const LandingFooter = () => (
   </footer>
 );
 
+const ScrollLine = () => {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const { scrollYProgress } = useScroll();
+  const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const sparkOpacity = useTransform(scrollYProgress, [0, 0.04, 0.96, 1], [0, 1, 1, 0]);
+
+  const desktopPath =
+    "M 82 6 " +
+    "C 82 18, 64 24, 43 31 " +
+    "C 22 38, 9 49, 18 59 " +
+    "C 30 72, 72 69, 78 82 " +
+    "C 84 93, 58 93, 50 98";
+
+  const mobilePath =
+    "M 50 7 " +
+    "C 70 22, 30 42, 50 62 " +
+    "C 65 76, 35 88, 50 98";
+
+  const d = isMobile ? mobilePath : desktopPath;
+  const sparkX = useTransform(
+    scrollYProgress,
+    [0, 0.18, 0.34, 0.5, 0.68, 0.84, 1],
+    isMobile ? [50, 64, 38, 50, 60, 40, 50] : [82, 72, 48, 18, 40, 78, 50],
+  );
+  const sparkY = useTransform(
+    scrollYProgress,
+    [0, 0.18, 0.34, 0.5, 0.68, 0.84, 1],
+    isMobile ? [7, 23, 42, 62, 76, 88, 98] : [6, 20, 30, 58, 70, 82, 98],
+  );
+
+  return (
+    <svg
+      aria-hidden="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100vw",
+        height: "100vh",
+        zIndex: 5,
+        pointerEvents: "none",
+        overflow: "visible",
+      }}
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+    >
+      <path
+        d={d}
+        fill="none"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="1"
+        strokeLinecap="round"
+        strokeDasharray="2 7"
+      />
+      <motion.path
+        d={d}
+        fill="none"
+        stroke="#ff4b3e"
+        strokeWidth="6"
+        strokeLinecap="round"
+        style={{
+          pathLength,
+          filter:
+            "drop-shadow(0 0 24px rgba(255,75,62,0.3)) drop-shadow(0 0 48px rgba(255,75,62,0.15))",
+          opacity: 0.35,
+        }}
+      />
+      <motion.path
+        d={d}
+        fill="none"
+        stroke="#ff4b3e"
+        strokeWidth="2"
+        strokeLinecap="round"
+        style={{
+          pathLength,
+          filter:
+            "drop-shadow(0 0 8px rgba(255,75,62,0.6)) drop-shadow(0 0 24px rgba(255,75,62,0.3))",
+        }}
+      />
+      <motion.circle
+        cx={sparkX}
+        cy={sparkY}
+        r="1.8"
+        fill="#ff4b3e"
+        style={{
+          opacity: sparkOpacity,
+          filter:
+            "drop-shadow(0 0 10px rgba(255,75,62,0.9)) drop-shadow(0 0 28px rgba(255,75,62,0.45))",
+        }}
+      />
+      <motion.circle
+        cx={sparkX}
+        cy={sparkY}
+        r="4.4"
+        fill="none"
+        stroke="#ff4b3e"
+        strokeWidth="0.35"
+        style={{
+          opacity: sparkOpacity,
+        }}
+      />
+    </svg>
+  );
+};
+
 const LandingPage = ({ onNav }) => {
   return (
     <div style={{ minHeight: "100vh", background: "var(--graphite-900)", color: "var(--warm-white)" }}>
+      <ScrollLine />
       <LandingNav onNav={onNav} />
       <HeroSection onNav={onNav} />
       <BenefitsStrip />
@@ -1727,10 +1801,6 @@ const LoginPage = ({ onNav }) => {
     };
   }, [onNav]);
 
-  const getRedirectUrl = () => {
-    return `${window.location.origin}/auth/callback?next=/dashboard`;
-  };
-
   const submit = async (e) => {
     e.preventDefault();
     setError("");
@@ -1740,34 +1810,21 @@ const LoginPage = ({ onNav }) => {
       return;
     }
     setState("sending");
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: getRedirectUrl() },
+
+    const response = await fetch("/api/auth/magic-link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     });
 
-    if (authError) {
-      setError(authError.message);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      setError(body?.error || "Could not send sign-in link.");
       setState("error");
       return;
     }
 
     setState("sent");
-  };
-
-  const signInWithGoogle = async () => {
-    setError("");
-    setState("sending");
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: getRedirectUrl() },
-    });
-
-    if (authError) {
-      setError(authError.message);
-      setState("error");
-    }
   };
 
   return (
@@ -1845,37 +1902,6 @@ const LoginPage = ({ onNav }) => {
                 </Button>
               </form>
 
-              <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ flex: 1, height: 1, background: "var(--hair)" }} />
-                <span style={{ fontSize: 10.5, color: "var(--ash-dim)", fontFamily: "var(--font-mono)", letterSpacing: 1 }}>OR</span>
-                <div style={{ flex: 1, height: 1, background: "var(--hair)" }} />
-              </div>
-
-              <button
-                style={{
-                  marginTop: 20,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 10,
-                  padding: "12px 16px",
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid var(--hair)",
-                  borderRadius: 10,
-                  fontSize: 13.5,
-                  color: "var(--warm-white)",
-                  width: "100%",
-                  transition: "background 180ms var(--ease-out)",
-                }}
-                onClick={signInWithGoogle}
-                disabled={state === "sending"}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15h-2v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" fill="#fff" opacity="0.6"/>
-                </svg>
-                Continue with Google
-              </button>
-
               <div
                 style={{
                   marginTop: 28,
@@ -1934,7 +1960,7 @@ const LoginPage = ({ onNav }) => {
         </div>
 
         <div style={{ fontSize: 11.5, color: "var(--ash-dim)", letterSpacing: "-0.005em" }}>
-          By continuing you agree to our <a style={{ textDecoration: "underline", textDecorationColor: "var(--hair)" }}>Terms</a> and <a style={{ textDecoration: "underline", textDecorationColor: "var(--hair)" }}>Privacy</a>.
+          By continuing you agree to our <a href="/terms" style={{ textDecoration: "underline", textDecorationColor: "var(--hair)" }}>Terms</a> and <a href="/privacy" style={{ textDecoration: "underline", textDecorationColor: "var(--hair)" }}>Privacy</a>.
         </div>
       </div>
 
@@ -2157,9 +2183,9 @@ const DashboardShell = ({ route, onNav, children }) => {
         >
           <OperatorBadge size={32} status="working" />
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: "-0.005em" }}>Rei is on it</div>
+            <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: "-0.005em" }}>Rei is standing by</div>
             <div style={{ fontSize: 10.5, color: "var(--ash-dim)", fontFamily: "var(--font-mono)", letterSpacing: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              next nudge in 2h 14m
+              live invoice checks
             </div>
           </div>
         </div>
@@ -2195,17 +2221,56 @@ const StatTile = ({ label, value, delta, tone = "neutral", sub }) => {
   );
 };
 
-const CashflowChart = () => {
-  const data = [
-    { day: "Mon", paid: 1200, queued: 400 },
-    { day: "Tue", paid: 2200, queued: 600 },
-    { day: "Wed", paid: 1800, queued: 2400 },
-    { day: "Thu", paid: 3100, queued: 800 },
-    { day: "Fri", paid: 2400, queued: 1600 },
-    { day: "Sat", paid: 900, queued: 200 },
-    { day: "Sun", paid: 1600, queued: 400 },
-  ];
-  const max = Math.max(...data.map(d => d.paid + d.queued));
+const sameDay = (a, b) => {
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate();
+};
+
+const getDueDate = (invoice) => {
+  return invoice.due_date ? new Date(`${invoice.due_date}T00:00:00`) : null;
+};
+
+const getPaidDate = (invoice) => {
+  return invoice.paid_at ? new Date(invoice.paid_at) : null;
+};
+
+const formatMoney = (value) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+const CashflowChart = ({ invoices = [], today }) => {
+  const data = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+
+    const paid = invoices
+      .filter((invoice) => invoice.status === "paid")
+      .filter((invoice) => {
+        const paidDate = getPaidDate(invoice);
+        return paidDate ? sameDay(paidDate, date) : false;
+      })
+      .reduce((sum, invoice) => sum + Number(invoice.total || 0), 0);
+
+    const due = invoices
+      .filter((invoice) => invoice.status !== "paid" && invoice.status !== "void" && invoice.status !== "draft")
+      .filter((invoice) => {
+        const dueDate = getDueDate(invoice);
+        return dueDate ? sameDay(dueDate, date) : false;
+      })
+      .reduce((sum, invoice) => sum + Number(invoice.total || 0), 0);
+
+    return {
+      day: date.toLocaleDateString("en-US", { weekday: "short" }),
+      paid,
+      due,
+    };
+  });
+  const max = Math.max(...data.map(d => d.paid + d.due), 1);
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 14, height: 180, padding: "12px 4px" }}>
       {data.map((d, i) => (
@@ -2213,7 +2278,7 @@ const CashflowChart = () => {
           <div style={{ flex: 1, width: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 3 }}>
             <div
               style={{
-                height: `${(d.queued / max) * 100}%`,
+                height: `${(d.due / max) * 100}%`,
                 background: "linear-gradient(180deg, rgba(255,75,62,0.4), rgba(255,75,62,0.15))",
                 border: "1px solid rgba(255,75,62,0.3)",
                 borderRadius: "4px 4px 0 0",
@@ -2241,10 +2306,22 @@ const CashflowChart = () => {
  * @param {{ invoices?: Array<{ id?: string, client_name?: string, client_email?: string, total?: number | string, status?: string, due_date?: string, last_reminder_stage?: number }> }} props
  */
 const DashboardHome = ({ invoices = [] }) => {
+  const router = useRouter();
   const [filter, setFilter] = React.useState("all");
   const sourceInvoices = invoices;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  React.useEffect(() => {
+    const refresh = () => router.refresh();
+    window.addEventListener("focus", refresh);
+    const refreshTimer = window.setInterval(refresh, 30000);
+
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.clearInterval(refreshTimer);
+    };
+  }, [router]);
 
   const invoiceRows = sourceInvoices.map((invoice) => {
     const dueDate = invoice.due_date ? new Date(`${invoice.due_date}T00:00:00`) : null;
@@ -2268,9 +2345,13 @@ const DashboardHome = ({ invoices = [] }) => {
 
     return {
       id: invoice.id ? `INV-${String(invoice.id).slice(0, 8)}` : "INV",
+      rawId: invoice.id || "",
       client: invoice.client_name || "Unnamed client",
       email: invoice.client_email || "",
       amount: Number(invoice.total || 0),
+      dueDate,
+      paidAt: invoice.paid_at || null,
+      createdAt: invoice.created_at || null,
       due,
       status,
       days,
@@ -2286,6 +2367,80 @@ const DashboardHome = ({ invoices = [] }) => {
   const outstanding = openInvoices.reduce((a, b) => a + b.amount, 0);
   const overdue = overdueInvoices.reduce((a, b) => a + b.amount, 0);
   const paid30 = paidInvoices.reduce((a, b) => a + b.amount, 0);
+  const paidWithDates = paidInvoices.filter((invoice) => invoice.paidAt && invoice.createdAt);
+  const avgDaysToPay = paidWithDates.length
+    ? paidWithDates.reduce((sum, invoice) => {
+      const paidAt = new Date(invoice.paidAt).getTime();
+      const createdAt = new Date(invoice.createdAt).getTime();
+      return sum + Math.max(Math.ceil((paidAt - createdAt) / 86400000), 0);
+    }, 0) / paidWithDates.length
+    : null;
+
+  const currentMonth = today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const nextActions = invoiceRows
+    .filter((invoice) => invoice.status === "sent" || invoice.status === "overdue")
+    .map((invoice) => {
+      if (invoice.days < 0) {
+        return {
+          key: invoice.rawId || invoice.id,
+          when: `due in ${Math.abs(invoice.days)}d`,
+          who: invoice.client,
+          what: "Watching",
+          tone: "amber",
+          priority: Math.abs(invoice.days) + 100,
+        };
+      }
+
+      const currentStage = Number(sourceInvoices.find((item) => item.id === invoice.rawId)?.last_reminder_stage ?? 0);
+      const targetStage = invoice.days >= 30 ? 4 : invoice.days >= 21 ? 3 : invoice.days >= 14 ? 2 : invoice.days >= 7 ? 1 : 0;
+
+      if (targetStage > currentStage) {
+        const stageLabel = {
+          1: "Friendly reminder",
+          2: "Direct reminder",
+          3: "Late-fee notice",
+          4: "Final notice",
+        }[targetStage];
+
+        return {
+          key: invoice.rawId || invoice.id,
+          when: "next cron",
+          who: invoice.client,
+          what: stageLabel,
+          tone: targetStage >= 3 ? "red" : "amber",
+          priority: -targetStage,
+        };
+      }
+
+      return {
+        key: invoice.rawId || invoice.id,
+        when: invoice.days >= 7 ? `stage ${currentStage} sent` : `day ${invoice.days} overdue`,
+        who: invoice.client,
+        what: invoice.days >= 7 ? "Waiting" : "No send yet",
+        tone: invoice.days >= 7 ? "neutral" : "amber",
+        priority: 50 - invoice.days,
+      };
+    })
+    .sort((a, b) => a.priority - b.priority)
+    .slice(0, 3);
+
+  const reiMessage = (() => {
+    const ready = nextActions.find((action) => action.when === "next cron");
+
+    if (ready) {
+      return `${ready.what} is ready for ${ready.who}. I will send it on the next reminder run.`;
+    }
+
+    if (overdueInvoices.length > 0) {
+      return `${overdueInvoices.length} overdue invoice${overdueInvoices.length === 1 ? "" : "s"} are being tracked. No duplicate nudge will send until the next stage is due.`;
+    }
+
+    if (openInvoices.length > 0) {
+      return `${openInvoices.length} open invoice${openInvoices.length === 1 ? "" : "s"} are being watched. I will start reminders at 7 days overdue.`;
+    }
+
+    return "No open invoices right now. Create an invoice and I will watch it from the due date onward.";
+  })();
 
   return (
     <div>
@@ -2306,7 +2461,7 @@ const DashboardHome = ({ invoices = [] }) => {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <h1 style={{ margin: 0, fontSize: 17, fontWeight: 500, letterSpacing: "-0.02em" }}>Overview</h1>
-          <Chip tone="dark" size="sm">April 2026</Chip>
+          <Chip tone="dark" size="sm">{currentMonth}</Chip>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
@@ -2349,10 +2504,10 @@ const DashboardHome = ({ invoices = [] }) => {
           <OperatorBadge size={40} status="working" />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, color: "var(--warm-white)", letterSpacing: "-0.01em", marginBottom: 2 }}>
-              Morning. <span style={{ color: "var(--ash)" }}>2 invoices went overdue overnight. I&apos;m sending the firmer nudge to Harbor Studio at 10:00 — edit if you want a softer tone.</span>
+              Morning. <span style={{ color: "var(--ash)" }}>{reiMessage}</span>
             </div>
             <div style={{ fontSize: 11.5, color: "var(--ash-dim)", fontFamily: "var(--font-mono)", letterSpacing: 0 }}>
-              rei · 8:14 am
+              rei · live
             </div>
           </div>
           <Button variant="secondary" size="sm">Review queue</Button>
@@ -2362,8 +2517,8 @@ const DashboardHome = ({ invoices = [] }) => {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }} className="stat-grid">
           <StatTile label="Outstanding" value={`$${outstanding.toLocaleString()}`} sub={`across ${openInvoices.length} invoices`} delta={openInvoices.length ? "open" : "clear"} tone="amber" />
           <StatTile label="Overdue" value={`$${overdue.toLocaleString()}`} sub={`${overdueInvoices.length} clients`} delta={overdueInvoices.length ? "needs action" : "clear"} tone="red" />
-          <StatTile label="Paid · 30d" value={`$${paid30.toLocaleString()}`} sub={`${paidInvoices.length} invoices`} delta={paidInvoices.length ? "paid" : "none"} tone="ok" />
-          <StatTile label="Avg. days to pay" value="8.2" sub="↓ from 12.4" delta="−34%" tone="ok" />
+          <StatTile label="Paid · 30d" value={formatMoney(paid30)} sub={`${paidInvoices.length} invoices`} delta={paidInvoices.length ? "paid" : "none"} tone="ok" />
+          <StatTile label="Avg. days to pay" value={avgDaysToPay === null ? "—" : avgDaysToPay.toFixed(1)} sub={avgDaysToPay === null ? "no paid invoices yet" : `${paidWithDates.length} paid invoices`} delta={avgDaysToPay === null ? "" : "live"} tone="ok" />
         </div>
 
         {/* Two-col */}
@@ -2449,10 +2604,10 @@ const DashboardHome = ({ invoices = [] }) => {
             <Panel>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <span style={{ fontSize: 13.5, fontWeight: 500, letterSpacing: "-0.01em" }}>Cashflow · 7d</span>
-                <Chip tone="ok" size="sm">+$3,240</Chip>
+                <Chip tone="ok" size="sm">{formatMoney(paid30)}</Chip>
               </div>
-              <div style={{ fontSize: 11.5, color: "var(--ash)", marginBottom: 6 }}>Paid vs queued, last 7 days.</div>
-              <CashflowChart />
+              <div style={{ fontSize: 11.5, color: "var(--ash)", marginBottom: 6 }}>Paid vs due, last 7 days. Refreshes while this page is open.</div>
+              <CashflowChart invoices={sourceInvoices} today={today} />
               <div style={{ display: "flex", gap: 14, fontSize: 11, color: "var(--ash)", paddingTop: 4 }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: "rgba(126,192,138,0.5)", border: "1px solid rgba(126,192,138,0.4)" }} />
@@ -2460,7 +2615,7 @@ const DashboardHome = ({ invoices = [] }) => {
                 </span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: "rgba(255,75,62,0.3)", border: "1px solid rgba(255,75,62,0.3)" }} />
-                  Queued
+                  Due
                 </span>
               </div>
             </Panel>
@@ -2471,19 +2626,20 @@ const DashboardHome = ({ invoices = [] }) => {
                 <OperatorBadge size={18} status="working" />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  { when: "in 2h", who: "Harbor Studio", what: "Firmer nudge", tone: "red" },
-                  { when: "tomorrow 9am", who: "Fern & Oak", what: "Late-fee notice", tone: "red" },
-                  { when: "fri", who: "Rook & Raven", what: "Day-of nudge", tone: "amber" },
-                ].map((q, i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(8,9,11,0.5)", border: "1px solid var(--hair-soft)", borderRadius: 8 }}>
-                    <div style={{ width: 4, borderRadius: 2, background: q.tone === "red" ? "#ff4b3e" : "#e8c07c", flexShrink: 0 }} />
+                {nextActions.map((q) => (
+                  <div key={q.key} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(8,9,11,0.5)", border: "1px solid var(--hair-soft)", borderRadius: 8 }}>
+                    <div style={{ width: 4, borderRadius: 2, background: q.tone === "red" ? "#ff4b3e" : q.tone === "amber" ? "#e8c07c" : "var(--ash)", flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, letterSpacing: "-0.005em" }}>{q.what} · <span style={{ color: "var(--ash)" }}>{q.who}</span></div>
                       <div style={{ fontSize: 11, color: "var(--ash-dim)", fontFamily: "var(--font-mono)", letterSpacing: 0, marginTop: 1 }}>{q.when}</div>
                     </div>
                   </div>
                 ))}
+                {nextActions.length === 0 && (
+                  <div style={{ padding: "10px 12px", background: "rgba(8,9,11,0.5)", border: "1px solid var(--hair-soft)", borderRadius: 8, color: "var(--ash)", fontSize: 12.5 }}>
+                    No active sends queued.
+                  </div>
+                )}
               </div>
             </Panel>
           </div>
@@ -2630,7 +2786,7 @@ const NewInvoicePage = ({ onNav }) => {
         </h1>
         <p style={{ fontSize: 14.5, color: "var(--ash)", lineHeight: 1.55, margin: 0, marginBottom: 24 }}>
           <span style={{ color: "var(--warm-white-dim)" }}>{client}</span> has the payment link.
-          Rei will send the first nudge on day 6 if it&apos;s still open.
+          Rei will send the first reminder 7 days after the due date if it&apos;s still open.
         </p>
         <div style={{ display: "inline-flex", gap: 10 }}>
           <Button variant="primary" size="md" onClick={() => onNav("dashboard")} iconRight={<Icon.arrow s={13} />}>
@@ -2923,8 +3079,8 @@ const NewInvoicePage = ({ onNav }) => {
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <OperatorBadge size={22} status="working" />
                     <div>
-                      <div style={{ fontSize: 13, letterSpacing: "-0.005em" }}>Default · 6 / 10 / 13 / 17 days</div>
-                      <div style={{ fontSize: 11, color: "var(--ash-dim)" }}>Nudge → day-of → firmer → 1.5% fee</div>
+                      <div style={{ fontSize: 13, letterSpacing: "-0.005em" }}>Default · 7 / 14 / 21 / 30 days overdue</div>
+                      <div style={{ fontSize: 11, color: "var(--ash-dim)" }}>Friendly → direct → late-fee notice → final notice</div>
                     </div>
                   </div>
                   <Button variant="ghost" size="sm">Edit</Button>
@@ -2971,7 +3127,7 @@ const NewInvoicePage = ({ onNav }) => {
                 </button>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, letterSpacing: "-0.005em" }}>Apply late fee</div>
-                  <div style={{ fontSize: 11, color: "var(--ash-dim)" }}>1.5% after day 15. Client is notified.</div>
+                  <div style={{ fontSize: 11, color: "var(--ash-dim)" }}>Uses your Settings rule before the stage 3 notice.</div>
                 </div>
               </label>
             </div>
@@ -3050,8 +3206,8 @@ const NewInvoicePage = ({ onNav }) => {
             <OperatorBadge size={24} status="working" />
             <div style={{ fontSize: 12, color: "var(--ash)", lineHeight: 1.5, letterSpacing: "-0.005em" }}>
               If this stays open past <span style={{ color: "var(--warm-white-dim)" }}>{due}</span>, I&apos;ll send a
-              {" "}<span style={{ color: "#ff7468" }}>{tone}</span>{" "}nudge on day 6, escalate to firmer on day 13,
-              and apply late fee after day 15.
+              {" "}<span style={{ color: "#ff7468" }}>{tone}</span>{" "}reminder at 7 days overdue, escalate at 14 days,
+              and use your late-fee rule before the 21-day notice.
             </div>
           </div>
         </div>
