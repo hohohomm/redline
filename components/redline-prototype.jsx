@@ -1995,17 +1995,6 @@ const LoginPage = ({ onNav }) => {
 
 // Dashboard shell — sidebar + main work surface with invoice list, stats, operator feed.
 
-const MOCK_INVOICES = [
-  { id: "INV-0251", client: "Nordwerk Cycles", email: "matt@nordwerk.co", amount: 4200, due: "Apr 30", status: "paid", days: -2, stage: 5, last: "Paid 2d ago" },
-  { id: "INV-0250", client: "Harbor Studio", email: "ops@harborstudio.co", amount: 2480, due: "Apr 14", status: "overdue", days: 10, stage: 4, last: "Late fee applied" },
-  { id: "INV-0249", client: "Fern & Oak", email: "sarah@fernandoak.com", amount: 860, due: "Apr 21", status: "overdue", days: 3, stage: 3, last: "Firmer nudge queued" },
-  { id: "INV-0248", client: "Tall Order Coffee", email: "hi@tallorder.cafe", amount: 1150, due: "May 02", status: "sent", days: -8, stage: 1, last: "Nudge in 4d" },
-  { id: "INV-0247", client: "Midtown Dental", email: "acct@midtowndental.com", amount: 3820, due: "May 06", status: "sent", days: -12, stage: 1, last: "Quiet" },
-  { id: "INV-0246", client: "Rook & Raven LLC", email: "billing@rookraven.co", amount: 640, due: "Apr 28", status: "sent", days: -4, stage: 2, last: "Due-soon sent" },
-  { id: "INV-0245", client: "Lowtide Supply", email: "ana@lowtide.supply", amount: 2210, due: "Apr 10", status: "paid", days: -14, stage: 5, last: "Paid on time" },
-  { id: "INV-0244", client: "Copperline Barber", email: "luis@copperline.co", amount: 480, due: "May 10", status: "draft", days: 0, stage: 0, last: "Draft" },
-];
-
 const statusChip = (s, days) => {
   if (s === "paid") return <Chip tone="ok" icon={<Icon.check s={10} />}>Paid</Chip>;
   if (s === "overdue") return <Chip tone="red">Overdue · {days}d</Chip>;
@@ -2013,10 +2002,30 @@ const statusChip = (s, days) => {
   return <Chip tone="neutral">Draft</Chip>;
 };
 
+/**
+ * @param {{ route: string, onNav?: (route: string) => void, children: React.ReactNode }} props
+ */
 const DashboardShell = ({ route, onNav, children }) => {
+  const routeTargets = {
+    landing: "/",
+    dashboard: "/dashboard",
+    invoices: "/dashboard/invoices",
+    new: "/dashboard/invoices/new",
+    settings: "/dashboard/settings",
+  };
+
+  const navigate = (id) => {
+    if (onNav) {
+      onNav(id);
+      return;
+    }
+
+    window.location.href = routeTargets[id] || "/dashboard";
+  };
+
   const NavItem = ({ id, icon, label, badge, active }) => (
     <button
-      onClick={() => onNav(id)}
+      onClick={() => navigate(id)}
       style={{
         display: "flex",
         alignItems: "center",
@@ -2057,24 +2066,29 @@ const DashboardShell = ({ route, onNav, children }) => {
           height: "100vh",
         }}
       >
-        <button onClick={() => onNav("landing")} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 6px" }}>
+        <button onClick={() => navigate("landing")} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 6px" }}>
           <WordMark size={15} />
         </button>
 
-        <Button variant="primary" size="md" full icon={<Icon.plus s={14} />} onClick={() => onNav("new")}>
+        <Button variant="primary" size="md" full icon={<Icon.plus s={14} />} onClick={() => navigate("new")}>
           New invoice
         </Button>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <NavItem id="dashboard" icon={<Icon.home s={14} />} label="Overview" active={route === "dashboard"} />
-          <NavItem id="dashboard" icon={<Icon.doc s={14} />} label="Invoices" badge="14" />
+          <NavItem id="invoices" icon={<Icon.doc s={14} />} label="Invoices" active={route === "invoices"} />
           <NavItem id="dashboard" icon={<Icon.user s={14} />} label="Clients" />
           <NavItem id="dashboard" icon={<Icon.bell s={14} />} label="Sequences" />
           <NavItem id="dashboard" icon={<Icon.trend s={14} />} label="Cashflow" />
         </div>
 
         <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
-          <NavItem id="dashboard" icon={<Icon.cog s={14} />} label="Settings" />
+          <NavItem id="settings" icon={<Icon.cog s={14} />} label="Settings" active={route === "settings"} />
+          <form action="/api/auth/signout" method="post" style={{ marginTop: 8 }}>
+            <Button variant="ghost" size="md" full type="submit" icon={<Icon.arrow s={14} />}>
+              Sign out
+            </Button>
+          </form>
         </div>
 
         {/* Operator status card */}
@@ -2171,13 +2185,55 @@ const CashflowChart = () => {
   );
 };
 
-const DashboardHome = ({ onNav }) => {
+/**
+ * @param {{ invoices?: Array<{ id?: string, client_name?: string, client_email?: string, total?: number | string, status?: string, due_date?: string, last_reminder_stage?: number }> }} props
+ */
+const DashboardHome = ({ invoices = [] }) => {
   const [filter, setFilter] = React.useState("all");
-  const filtered = MOCK_INVOICES.filter(i => filter === "all" || i.status === filter);
+  const sourceInvoices = invoices;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const outstanding = MOCK_INVOICES.filter(i => i.status !== "paid" && i.status !== "draft").reduce((a, b) => a + b.amount, 0);
-  const overdue = MOCK_INVOICES.filter(i => i.status === "overdue").reduce((a, b) => a + b.amount, 0);
-  const paid30 = 12840;
+  const invoiceRows = sourceInvoices.map((invoice) => {
+    const dueDate = invoice.due_date ? new Date(`${invoice.due_date}T00:00:00`) : null;
+    const dueTime = dueDate ? dueDate.getTime() : today.getTime();
+    const daysUntilDue = Math.ceil((dueTime - today.getTime()) / 86400000);
+    const status = invoice.status || "draft";
+    const overdueDays = Math.max(Math.abs(Math.min(daysUntilDue, 0)), 0);
+    const days = status === "overdue" ? overdueDays : -Math.max(daysUntilDue, 0);
+    const due = dueDate
+      ? dueDate.toLocaleDateString("en-US", { month: "short", day: "2-digit" })
+      : "No due date";
+
+    let last = "Quiet";
+    if (status === "draft") last = "Draft";
+    if (status === "paid") last = "Paid";
+    if (status === "sent") last = daysUntilDue > 0 ? `Due in ${daysUntilDue}d` : "Awaiting";
+    if (status === "overdue") last = overdueDays > 0 ? `${overdueDays}d overdue` : "Overdue";
+    if (invoice.last_reminder_stage > 0 && status !== "paid") {
+      last = `Stage ${invoice.last_reminder_stage}`;
+    }
+
+    return {
+      id: invoice.id ? `INV-${String(invoice.id).slice(0, 8)}` : "INV",
+      client: invoice.client_name || "Unnamed client",
+      email: invoice.client_email || "",
+      amount: Number(invoice.total || 0),
+      due,
+      status,
+      days,
+      last,
+    };
+  });
+
+  const filtered = invoiceRows.filter(i => filter === "all" || i.status === filter);
+
+  const openInvoices = invoiceRows.filter(i => i.status !== "paid" && i.status !== "draft");
+  const overdueInvoices = invoiceRows.filter(i => i.status === "overdue");
+  const paidInvoices = invoiceRows.filter(i => i.status === "paid");
+  const outstanding = openInvoices.reduce((a, b) => a + b.amount, 0);
+  const overdue = overdueInvoices.reduce((a, b) => a + b.amount, 0);
+  const paid30 = paidInvoices.reduce((a, b) => a + b.amount, 0);
 
   return (
     <div>
@@ -2252,9 +2308,9 @@ const DashboardHome = ({ onNav }) => {
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }} className="stat-grid">
-          <StatTile label="Outstanding" value={`$${outstanding.toLocaleString()}`} sub="across 6 invoices" delta="+$640" tone="amber" />
-          <StatTile label="Overdue" value={`$${overdue.toLocaleString()}`} sub="2 clients" delta="+1 today" tone="red" />
-          <StatTile label="Paid · 30d" value={`$${paid30.toLocaleString()}`} sub="11 invoices" delta="+18%" tone="ok" />
+          <StatTile label="Outstanding" value={`$${outstanding.toLocaleString()}`} sub={`across ${openInvoices.length} invoices`} delta={openInvoices.length ? "open" : "clear"} tone="amber" />
+          <StatTile label="Overdue" value={`$${overdue.toLocaleString()}`} sub={`${overdueInvoices.length} clients`} delta={overdueInvoices.length ? "needs action" : "clear"} tone="red" />
+          <StatTile label="Paid · 30d" value={`$${paid30.toLocaleString()}`} sub={`${paidInvoices.length} invoices`} delta={paidInvoices.length ? "paid" : "none"} tone="ok" />
           <StatTile label="Avg. days to pay" value="8.2" sub="↓ from 12.4" delta="−34%" tone="ok" />
         </div>
 
@@ -2328,6 +2384,11 @@ const DashboardHome = ({ onNav }) => {
                   </div>
                 </div>
               ))}
+              {filtered.length === 0 && (
+                <div style={{ padding: "28px 18px", color: "var(--ash)", fontSize: 13 }}>
+                  No invoices found.
+                </div>
+              )}
             </div>
           </Panel>
 
@@ -2376,6 +2437,55 @@ const DashboardHome = ({ onNav }) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+/**
+ * @param {{ id: string, status?: string }} props
+ */
+const InvoiceActions = ({ id, status = "draft" }) => {
+  const [message, setMessage] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+  const [copying, setCopying] = React.useState(false);
+
+  const sendNow = async () => {
+    setMessage("");
+    setSending(true);
+    const response = await fetch(`/api/invoices/${id}/send`, { method: "POST" });
+    setSending(false);
+    setMessage(response.ok ? "Sent." : "Send failed.");
+  };
+
+  const copyPayLink = async () => {
+    setMessage("");
+    setCopying(true);
+    const response = await fetch(`/api/invoices/${id}/pay-link`, { method: "POST" });
+    const body = await response.json();
+    setCopying(false);
+
+    if (!response.ok || !body.url) {
+      setMessage("Pay link failed.");
+      return;
+    }
+
+    await navigator.clipboard.writeText(body.url);
+    setMessage("Pay link copied.");
+  };
+
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <Button variant="secondary" size="sm" icon={<Icon.send s={12} />} onClick={sendNow} loading={sending} disabled={status === "paid"}>
+        Send now
+      </Button>
+      <Button variant="ghost" size="sm" icon={<Icon.copy s={12} />} onClick={copyPayLink} loading={copying}>
+        Copy pay link
+      </Button>
+      {message && (
+        <span style={{ fontSize: 11.5, color: "var(--ash)", fontFamily: "var(--font-mono)", letterSpacing: 0 }}>
+          {message}
+        </span>
+      )}
     </div>
   );
 };
@@ -2899,4 +3009,4 @@ const NewInvoicePage = ({ onNav }) => {
 
 
 
-export { LandingPage, LoginPage, DashboardShell, DashboardHome, NewInvoicePage };
+export { LandingPage, LoginPage, DashboardShell, DashboardHome, NewInvoicePage, InvoiceActions };

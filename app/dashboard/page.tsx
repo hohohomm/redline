@@ -1,22 +1,16 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-
 import { DashboardHome, DashboardShell } from "@/components/redline-prototype";
+import { createClient } from "@/lib/supabase/server";
 
-export default function DashboardPage() {
-  const router = useRouter();
-
-  function navigate(route: string) {
-    if (route === "landing") router.push("/");
-    if (route === "login") router.push("/login");
-    if (route === "dashboard") router.push("/dashboard");
-    if (route === "new") router.push("/dashboard/invoices/new");
-  }
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: invoices } = await supabase
+    .from("invoices")
+    .select("id, client_name, client_email, total, status, due_date, created_at, last_reminder_stage")
+    .order("created_at", { ascending: false });
 
   return (
-    <DashboardShell route="dashboard" onNav={navigate}>
-      <DashboardHome onNav={navigate} />
+    <DashboardShell route="dashboard">
+      <DashboardHome invoices={invoices ?? []} />
     </DashboardShell>
   );
 }

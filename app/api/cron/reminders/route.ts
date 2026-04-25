@@ -135,7 +135,10 @@ export async function GET(request: Request) {
     }
 
     if (dryRun) {
-      console.log(`[dry-run] Would send stage ${stage} to ${invoice.client_email} for invoice ${invoice.id}`);
+      // Dry-run debug — only log outside production to avoid leaking client emails into prod logs.
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`[dry-run] Would send stage ${stage} to ${invoice.client_email} for invoice ${invoice.id}`);
+      }
       processed += 1;
       continue;
     }

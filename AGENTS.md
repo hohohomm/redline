@@ -29,3 +29,12 @@ Per-week task prompts: `~/knowledge-base/projects/invoiceapp/weekly-prompts/week
 ## Keeping the knowledge base current
 
 When you learn something reusable (a workaround, a pattern, a project decision), follow the protocol in `~/knowledge-base/workflows/update-kb.md`.
+
+
+<claude-mem-context>
+# Memory Context
+
+# [RedLine] recent context, 2026-04-25 11:51am GMT+10
+
+No previous sessions found.
+</claude-mem-context>
