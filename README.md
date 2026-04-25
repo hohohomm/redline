@@ -2,10 +2,6 @@
   <img src="public/assets/redline-banner.png" alt="Redline — get paid without chasing" />
 </p>
 
-<p align="center">
-  <img src="public/assets/redline-icon.png" alt="Redline" width="96" />
-</p>
-
 <h1 align="center">Redline</h1>
 
 <p align="center"><strong>Get paid without chasing.</strong></p>
