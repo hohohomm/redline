@@ -61,29 +61,28 @@ const OperatorBadge = ({ size = 28, status = "idle", label }) => {
       }}
     >
       <div
+        aria-label="Rei"
+        role="img"
         style={{
           position: "relative",
           width: size,
           height: size,
           borderRadius: "50%",
-          overflow: "hidden",
-          boxShadow:
-            "0 0 0 1px rgba(255,255,255,0.1), inset 0 0 0 1px rgba(255,255,255,0.05)",
-          background: "#f5f1ea",
+          background: "#0c0d11",
+          boxShadow: "0 0 0 1.5px #ff4b3e, 0 0 14px rgba(255,75,62,0.45)",
           flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "ui-monospace, monospace",
+          fontSize: Math.round(size * 0.42),
+          fontWeight: 600,
+          color: "#ff6a5a",
+          letterSpacing: "-0.04em",
+          textShadow: "0 0 8px rgba(255,75,62,0.6)",
         }}
       >
-        <img
-          src="/assets/mascot.png"
-          alt=""
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            filter: "contrast(1.05) saturate(0.9)",
-            transform: "scale(1.02)",
-          }}
-        />
+        R
         <div
           style={{
             position: "absolute",

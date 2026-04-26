@@ -12,6 +12,14 @@ export async function middleware(request: NextRequest) {
   const isDashboard = path.startsWith("/dashboard");
   const isLogin = path === "/login";
   const isOnboarding = path.startsWith("/onboarding");
+  const isDemo = path === "/demo" || path.startsWith("/demo/");
+
+  // Demo routes are publicly accessible — no auth check needed
+  // Static seed data → cache aggressively at the edge
+  if (isDemo) {
+    response.headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    return response;
+  }
 
   if (!isDashboard && !isLogin && !isOnboarding) {
     return response;

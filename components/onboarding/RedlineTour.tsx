@@ -357,25 +357,29 @@ const REI_LINES: string[] = [
 function ReiSpeech({ step }: { step: number }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-      {/* Avatar */}
+      {/* Avatar — abstract Rei mark, dark + red ring */}
       <div
+        aria-label="Rei"
+        role="img"
         style={{
           width: 36,
           height: 36,
           borderRadius: "50%",
-          background: "#f5f1ea",
+          background: "#0c0d11",
           flexShrink: 0,
-          overflow: "hidden",
-          boxShadow: "0 0 0 2px #ff4b3e, 0 0 12px rgba(255,75,62,0.35)",
-          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 0 0 1.5px #ff4b3e, 0 0 14px rgba(255,75,62,0.45)",
+          fontFamily: "var(--font-mono, ui-monospace, monospace)",
+          fontSize: 15,
+          fontWeight: 600,
+          color: "#ff6a5a",
+          letterSpacing: "-0.04em",
+          textShadow: "0 0 8px rgba(255,75,62,0.6)",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/assets/mascot.png"
-          alt="Rei"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        R
       </div>
 
       {/* Bubble */}
