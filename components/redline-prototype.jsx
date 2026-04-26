@@ -1425,29 +1425,20 @@ const SequenceOutline = () => {
   );
 };
 
-// Single continuous rail that spans the whole landing.
-// A fixed-viewport SVG draws a vertical path whose pathLength follows window
-// scroll progress. A small handful of anchor nodes (aligned roughly with section
-// mid-heights) light up as the drawn length passes them, and two offset pulses
-// travel the full path continuously.
+// "The Thread" — one quiet vertical rail, drawn by scroll.
+// Ghost spine is always faintly visible (the path ahead). The active stroke
+// draws from 0→scrollYProgress, spring-smoothed. At 6 station Y-positions,
+// a short perpendicular tick extends left into the page as the active stroke
+// passes — a silent handshake between rail and content. No circles, no
+// time-looped pulses: every pixel of motion is caused by the user's scroll.
 const LandingRail = () => {
   const { scrollYProgress } = useScroll();
-  // Smooth the scroll so the draw doesn't jitter frame-to-frame.
   const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.25 });
 
-  // Vertical path with gentle horizontal wobbles. Designed in a 100x1000 viewBox
-  // (preserveAspectRatio="none") so horizontal coords read as % of viewport and
-  // vertical as % of document. Stroke stays 1-unit thanks to non-scaling-stroke.
-  const d =
-    "M 92 0 C 92 70 88 120 80 180 " +
-    "C 70 240 20 260 18 320 " +
-    "C 16 380 70 410 76 470 " +
-    "C 82 530 20 560 18 620 " +
-    "C 16 680 70 710 76 770 " +
-    "C 82 830 60 880 50 1000";
-
-  // Rough Y positions of section midpoints on the path (0-1 normalized).
-  const anchors = [0.08, 0.22, 0.38, 0.55, 0.72, 0.88];
+  // 100x1000 viewBox, preserveAspectRatio=none: x reads as %viewport, y as %document.
+  // Non-scaling-stroke keeps widths in screen units.
+  const spineX = 92;
+  const stations = [0.08, 0.22, 0.38, 0.55, 0.72, 0.88];
 
   return (
     <div
@@ -1468,114 +1459,76 @@ const LandingRail = () => {
         preserveAspectRatio="none"
         style={{ overflow: "visible" }}
       >
-        {/* faint guide */}
-        <path
-          d={d}
-          fill="none"
-          stroke="rgba(255,75,62,0.06)"
-          strokeWidth="1.2"
-          strokeLinecap="round"
+        {/* ghost spine — the path ahead, always faintly visible */}
+        <line
+          x1={spineX}
+          y1={0}
+          x2={spineX}
+          y2={1000}
+          stroke="rgba(255,75,62,0.08)"
+          strokeWidth="1"
           vectorEffect="non-scaling-stroke"
         />
-        {/* outer glow (scroll-driven draw) */}
-        <motion.path
-          d={d}
-          fill="none"
+        {/* active outer glow, scroll-drawn */}
+        <motion.line
+          x1={spineX}
+          y1={0}
+          x2={spineX}
+          y2={1000}
           stroke="#ff4b3e"
-          strokeWidth="6"
+          strokeWidth="5"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
           style={{
             pathLength: smooth,
-            filter: "drop-shadow(0 0 6px rgba(255,75,62,0.65)) drop-shadow(0 0 24px rgba(255,75,62,0.32))",
-            opacity: 0.38,
+            filter:
+              "drop-shadow(0 0 8px rgba(255,75,62,0.7)) drop-shadow(0 0 26px rgba(255,75,62,0.35))",
+            opacity: 0.42,
           }}
         />
-        {/* hot inner (scroll-driven draw) */}
-        <motion.path
-          d={d}
-          fill="none"
-          stroke="#ff7f70"
-          strokeWidth="2"
+        {/* active inner core, scroll-drawn */}
+        <motion.line
+          x1={spineX}
+          y1={0}
+          x2={spineX}
+          y2={1000}
+          stroke="#ff9080"
+          strokeWidth="1.5"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
           style={{ pathLength: smooth, opacity: 1 }}
         />
-        {/* traveling pulse A */}
-        <motion.path
-          d={d}
-          fill="none"
-          stroke="#ffd5cc"
-          strokeWidth="2.8"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-          pathLength={1}
-          strokeDasharray="0.04 0.96"
-          initial={{ strokeDashoffset: 0, opacity: 0 }}
-          animate={{ strokeDashoffset: -1, opacity: 0.95 }}
-          transition={{ strokeDashoffset: { duration: 7.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
-        />
-        {/* traveling pulse B (offset) */}
-        <motion.path
-          d={d}
-          fill="none"
-          stroke="#ff8a7a"
-          strokeWidth="2"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-          pathLength={1}
-          strokeDasharray="0.02 0.98"
-          initial={{ strokeDashoffset: -0.5, opacity: 0 }}
-          animate={{ strokeDashoffset: -1.5, opacity: 0.75 }}
-          transition={{ strokeDashoffset: { duration: 7.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
-        />
-        {/* anchor nodes */}
-        {anchors.map((t, i) => (
-          <RailAnchor key={i} t={t} smooth={smooth} />
+        {/* stations: short perpendicular ticks that draw left as rail passes */}
+        {stations.map((t) => (
+          <RailStation key={t} t={t} spineX={spineX} smooth={smooth} />
         ))}
       </svg>
     </div>
   );
 };
 
-const RailAnchor = ({ t, smooth }) => {
-  // "Lit" when the drawn pathLength passes this anchor's position.
-  const lit = useTransform(smooth, (v) => (v > t ? 1 : 0));
-  const scale = useTransform(lit, [0, 1], [0.55, 1]);
-  const haloOpacity = useTransform(lit, [0, 1], [0, 0.55]);
-
-  // Approx position on path in the 100x1000 viewBox: alternate left/right at
-  // each anchor to match the path kinks.
-  const positions = {
-    0.08: { x: 92, y: 80 },
-    0.22: { x: 78, y: 220 },
-    0.38: { x: 22, y: 380 },
-    0.55: { x: 78, y: 550 },
-    0.72: { x: 22, y: 720 },
-    0.88: { x: 64, y: 880 },
-  };
-  const pos = positions[t] ?? { x: 50, y: t * 1000 };
-
+const RailStation = ({ t, spineX, smooth }) => {
+  const y = t * 1000;
+  // Draw in across a narrow scroll window around this station.
+  const draw = useTransform(smooth, [t - 0.008, t + 0.02], [0, 1]);
+  const opacity = useTransform(smooth, [t - 0.008, t + 0.02, t + 0.08], [0, 1, 0.55]);
+  const reach = 4;
   return (
-    <g>
-      <motion.circle
-        cx={pos.x}
-        cy={pos.y}
-        r="6"
-        fill="none"
-        stroke="rgba(255,75,62,0.55)"
-        strokeWidth="1"
-        vectorEffect="non-scaling-stroke"
-        style={{ scale, opacity: haloOpacity, transformOrigin: `${pos.x}px ${pos.y}px` }}
-      />
-      <motion.circle
-        cx={pos.x}
-        cy={pos.y}
-        r="2.4"
-        fill="#ff4b3e"
-        style={{ scale, transformOrigin: `${pos.x}px ${pos.y}px` }}
-      />
-    </g>
+    <motion.line
+      x1={spineX}
+      y1={y}
+      x2={spineX - reach}
+      y2={y}
+      stroke="#ff6a5a"
+      strokeWidth="2"
+      strokeLinecap="round"
+      vectorEffect="non-scaling-stroke"
+      style={{
+        pathLength: draw,
+        opacity,
+        filter: "drop-shadow(0 0 6px rgba(255,75,62,0.6))",
+      }}
+    />
   );
 };
 
@@ -1911,21 +1864,20 @@ const LandingFooter = () => (
   </footer>
 );
 
-// Scroll-scrubbed reveal. Child is hidden (opacity 0, translateY 48) until the
-// section's top crosses viewport center, then scrubs to full visible as it
-// continues up. The user follows the rail down; each section emerges in turn.
+// Scroll-scrubbed reveal. Starts at opacity 0.2 (not 0) so sections never
+// flash fully invisible during a fast scroll. No blur: avoids GPU cost on
+// long pages and keeps type crisp while scrolling.
 const ScrollReveal = ({ children }) => {
   const ref = React.useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start 92%", "start 40%"],
+    offset: ["start 92%", "start 45%"],
   });
-  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [48, 0]);
-  const filter = useTransform(scrollYProgress, [0, 1], ["blur(6px)", "blur(0px)"]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0.2, 1]);
+  const y = useTransform(scrollYProgress, [0, 1], [28, 0]);
 
   return (
-    <motion.div ref={ref} style={{ opacity, y, filter, willChange: "opacity, transform, filter" }}>
+    <motion.div ref={ref} style={{ opacity, y, willChange: "opacity, transform" }}>
       {children}
     </motion.div>
   );
