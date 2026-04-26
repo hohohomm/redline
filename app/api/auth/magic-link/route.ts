@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/resend";
 import { buildEmail, escapeHtml } from "@/lib/email/template-base";
+import { getClientKey, rateLimit } from "@/lib/rate-limit";
 
 type MagicLinkRequest = {
   email?: string;
@@ -34,6 +35,15 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Sign-in is paused while we finalise launch. Back shortly." },
       { status: 503 },
+    );
+  }
+
+  const rlResult = rateLimit(getClientKey(request), 5, 10 * 60 * 1000);
+  if (!rlResult.ok) {
+    const retryAfter = Math.ceil((rlResult.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: "rate_limited", retryAfter },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
     );
   }
 

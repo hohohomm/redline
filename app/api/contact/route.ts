@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/resend";
 import { buildEmail, escapeHtml } from "@/lib/email/template-base";
+import { getClientKey, rateLimit } from "@/lib/rate-limit";
 
 type ContactRequest = {
   name?: string;
@@ -12,6 +13,15 @@ type ContactRequest = {
 };
 
 export async function POST(request: Request) {
+  const rlResult = rateLimit(getClientKey(request), 3, 10 * 60 * 1000);
+  if (!rlResult.ok) {
+    const retryAfter = Math.ceil((rlResult.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: "rate_limited", retryAfter },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    );
+  }
+
   const body = (await request.json()) as ContactRequest;
   const name = body.name?.trim();
   const email = body.email?.trim();

@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 function csvEscape(value: unknown): string {
@@ -20,6 +21,15 @@ export async function GET() {
 
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  const rlResult = rateLimit(user.id, 10, 60 * 60 * 1000);
+  if (!rlResult.ok) {
+    const retryAfter = Math.ceil((rlResult.resetAt - Date.now()) / 1000);
+    return new Response(
+      JSON.stringify({ error: "rate_limited", retryAfter }),
+      { status: 429, headers: { "Retry-After": String(retryAfter), "Content-Type": "application/json" } },
+    );
   }
 
   const { data: invoices, error } = await supabase

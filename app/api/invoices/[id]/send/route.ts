@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/resend";
 import { buildEmail, escapeHtml } from "@/lib/email/template-base";
+import { rateLimit } from "@/lib/rate-limit";
 import { createInvoiceCheckoutUrl } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,6 +17,15 @@ export async function POST(
 
   if (!user) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const rlResult = rateLimit(user.id, 20, 60 * 60 * 1000);
+  if (!rlResult.ok) {
+    const retryAfter = Math.ceil((rlResult.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: "rate_limited", retryAfter },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    );
   }
 
   const { data: invoice, error } = await supabase
