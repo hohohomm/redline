@@ -235,9 +235,16 @@ a {
 .landing-rail + nav,
 .landing-rail ~ section,
 .landing-rail ~ footer,
-.landing-rail ~ nav {
+.landing-rail ~ nav,
+.landing-rail ~ div {
   position: relative;
   z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-rail {
+    display: none;
+  }
 }
 
 .seq-feature-row {

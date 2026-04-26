@@ -1482,31 +1482,31 @@ const LandingRail = () => {
           d={d}
           fill="none"
           stroke="#ff4b3e"
-          strokeWidth="3.5"
+          strokeWidth="6"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
           style={{
             pathLength: smooth,
-            filter: "drop-shadow(0 0 4px rgba(255,75,62,0.55)) drop-shadow(0 0 18px rgba(255,75,62,0.25))",
-            opacity: 0.32,
+            filter: "drop-shadow(0 0 6px rgba(255,75,62,0.65)) drop-shadow(0 0 24px rgba(255,75,62,0.32))",
+            opacity: 0.38,
           }}
         />
         {/* hot inner (scroll-driven draw) */}
         <motion.path
           d={d}
           fill="none"
-          stroke="#ff6a5a"
-          strokeWidth="1.2"
+          stroke="#ff7f70"
+          strokeWidth="2"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          style={{ pathLength: smooth, opacity: 0.95 }}
+          style={{ pathLength: smooth, opacity: 1 }}
         />
         {/* traveling pulse A */}
         <motion.path
           d={d}
           fill="none"
           stroke="#ffd5cc"
-          strokeWidth="2.2"
+          strokeWidth="2.8"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
           pathLength={1}
@@ -1520,13 +1520,13 @@ const LandingRail = () => {
           d={d}
           fill="none"
           stroke="#ff8a7a"
-          strokeWidth="1.6"
+          strokeWidth="2"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
           pathLength={1}
           strokeDasharray="0.02 0.98"
           initial={{ strokeDashoffset: -0.5, opacity: 0 }}
-          animate={{ strokeDashoffset: -1.5, opacity: 0.7 }}
+          animate={{ strokeDashoffset: -1.5, opacity: 0.75 }}
           transition={{ strokeDashoffset: { duration: 7.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
         />
         {/* anchor nodes */}
@@ -1911,18 +1911,38 @@ const LandingFooter = () => (
   </footer>
 );
 
+// Scroll-scrubbed reveal. Child is hidden (opacity 0, translateY 48) until the
+// section's top crosses viewport center, then scrubs to full visible as it
+// continues up. The user follows the rail down; each section emerges in turn.
+const ScrollReveal = ({ children }) => {
+  const ref = React.useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 92%", "start 40%"],
+  });
+  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const y = useTransform(scrollYProgress, [0, 1], [48, 0]);
+  const filter = useTransform(scrollYProgress, [0, 1], ["blur(6px)", "blur(0px)"]);
+
+  return (
+    <motion.div ref={ref} style={{ opacity, y, filter, willChange: "opacity, transform, filter" }}>
+      {children}
+    </motion.div>
+  );
+};
+
 const LandingPage = ({ onNav }) => {
   return (
     <div style={{ minHeight: "100vh", background: "var(--graphite-900)", color: "var(--warm-white)", position: "relative" }}>
       <LandingRail />
       <LandingNav onNav={onNav} />
       <HeroSection onNav={onNav} />
-      <BenefitsStrip />
-      <HowItWorks />
-      <SequenceDeepDive />
-      <PricingSection onNav={onNav} />
-      <FaqSection />
-      <FinalCta onNav={onNav} />
+      <ScrollReveal><BenefitsStrip /></ScrollReveal>
+      <ScrollReveal><HowItWorks /></ScrollReveal>
+      <ScrollReveal><SequenceDeepDive /></ScrollReveal>
+      <ScrollReveal><PricingSection onNav={onNav} /></ScrollReveal>
+      <ScrollReveal><FaqSection /></ScrollReveal>
+      <ScrollReveal><FinalCta onNav={onNav} /></ScrollReveal>
       <LandingFooter />
     </div>
   );
