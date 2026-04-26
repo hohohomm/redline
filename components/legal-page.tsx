@@ -242,9 +242,22 @@ export function LegalPage({ raw }: { raw: string }) {
           ))}
         </section>
 
-        <footer
+        <p
           style={{
             marginTop: 28,
+            marginBottom: 0,
+            fontSize: 12,
+            lineHeight: 1.6,
+            color: "var(--ash-dim)",
+            fontStyle: "italic",
+          }}
+        >
+          RedLine is operated by Phillip Preketes, ABN 29807420241. Contact: support@redlineinvoices.com
+        </p>
+
+        <footer
+          style={{
+            marginTop: 14,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",

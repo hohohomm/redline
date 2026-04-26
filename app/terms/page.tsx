@@ -4,7 +4,7 @@ const termsText = `TERMS OF SERVICE
 
 Last updated: 25 April 2026
 
-These Terms of Service ("Terms") govern your use of RedLine ("Service"), operated by Phillip Preketes (ABN pending registration) ("we", "us", "our"). By creating an account or using the Service you agree to these Terms. If you do not agree, do not use the Service.
+These Terms of Service ("Terms") govern your use of RedLine ("Service", "we", "us", "our"). By creating an account or using the Service you agree to these Terms. If you do not agree, do not use the Service.
 
 
 1. ABOUT REDLINE
@@ -162,7 +162,7 @@ We reserve the right to review and remove any content that we believe violates t
 
 20. INTELLECTUAL PROPERTY
 
-All software, design, text, and other materials that make up the Service (excluding Your Data) are owned by or licensed to Phillip Preketes. You are granted a limited, non-exclusive, non-transferable licence to use the Service for your internal business purposes during the term of your subscription.
+All software, design, text, and other materials that make up the Service (excluding Your Data) are owned by or licensed to the operator of RedLine (identified in the footer). You are granted a limited, non-exclusive, non-transferable licence to use the Service for your internal business purposes during the term of your subscription.
 
 You may not reproduce, modify, distribute, or create derivative works from any part of the Service without our written permission.
 
@@ -198,7 +198,7 @@ NOTHING IN THESE TERMS EXCLUDES, RESTRICTS, OR MODIFIES ANY GUARANTEE, RIGHT, OR
 
 25. INDEMNITY
 
-You agree to indemnify, defend, and hold harmless Phillip Preketes and any officers, employees, contractors, and agents from and against any and all claims, losses, damages, liabilities, costs, and expenses (including reasonable legal fees on a solicitor-client basis) arising out of or related to:
+You agree to indemnify, defend, and hold harmless the operator of RedLine (identified in the footer) and any officers, employees, contractors, and agents from and against any and all claims, losses, damages, liabilities, costs, and expenses (including reasonable legal fees on a solicitor-client basis) arising out of or related to:
 
 - Your use of the Service in breach of these Terms.
 - Your Data, including any claim that it infringes a third party's rights or breaches any law.
@@ -240,7 +240,6 @@ Before commencing legal proceedings, both parties agree to attempt to resolve an
 
 For any questions about these Terms, contact:
 
-Phillip Preketes
 Email: support@redlineinvoices.com
 Website: redlineinvoices.com
 New South Wales, Australia`;

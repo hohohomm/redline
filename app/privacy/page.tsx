@@ -4,7 +4,7 @@ const privacyText = `PRIVACY POLICY
 
 Last updated: 25 April 2026
 
-This Privacy Policy explains how Phillip Preketes (ABN pending registration) ("we", "us", "our"), operating RedLine at redlineinvoices.com, collects, uses, stores, and discloses personal information.
+This Privacy Policy explains how RedLine ("we", "us", "our"), accessible at redlineinvoices.com, collects, uses, stores, and discloses personal information.
 
 We are committed to handling personal information in accordance with the Australian Privacy Act 1988 (Cth) and the Australian Privacy Principles (APPs).
 
@@ -151,7 +151,6 @@ The "last updated" date at the top of this policy reflects when it was last revi
 
 For privacy questions, access requests, or complaints:
 
-Phillip Preketes
 Email: support@redlineinvoices.com
 Website: redlineinvoices.com
 New South Wales, Australia`;
