@@ -23,9 +23,17 @@ export default async function InvoicesListPage() {
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 500, letterSpacing: "-0.03em" }}>
             Invoices
           </h1>
-          <Link href="/dashboard/invoices/new" style={{ color: "#ff7468", fontSize: 13 }}>
-            + New invoice
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <a
+              href="/api/export/invoices"
+              style={{ color: "var(--ash)", fontSize: 13, textDecoration: "none" }}
+            >
+              ↓ Export CSV
+            </a>
+            <Link href="/dashboard/invoices/new" style={{ color: "#ff7468", fontSize: 13 }}>
+              + New invoice
+            </Link>
+          </div>
         </div>
 
         <table style={{ marginTop: 16, width: "100%", borderCollapse: "collapse", fontSize: 13 }}>

@@ -80,9 +80,17 @@ export default async function ClientsPage() {
               Every client with invoices, open balance, overdue count, and next due date.
             </p>
           </div>
-          <Link href="/dashboard/invoices/new" style={{ color: "#ff7468", fontSize: 13 }}>
-            + New invoice
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <a
+              href="/api/export/clients"
+              style={{ color: "var(--ash)", fontSize: 13, textDecoration: "none" }}
+            >
+              ↓ Export CSV
+            </a>
+            <Link href="/dashboard/invoices/new" style={{ color: "#ff7468", fontSize: 13 }}>
+              + New invoice
+            </Link>
+          </div>
         </div>
 
         <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
