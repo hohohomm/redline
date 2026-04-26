@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/redline-prototype";
 import { SettingsForm } from "@/components/settings-form";
 import { BusinessSettingsForm, type BusinessSettings } from "@/components/business-settings-form";
+import { ReferralShare } from "@/components/referral-share";
 import { createClient } from "@/lib/supabase/server";
 import type { LateFeeType } from "@/lib/late-fee";
 
@@ -23,10 +24,13 @@ export default async function SettingsPage() {
     reminder_tone: "Friendly",
   };
 
+  let referralCode: string | null = null;
+  let referralCount = 0;
+
   if (user) {
     const { data } = await supabase
       .from("user_settings")
-      .select("late_fee_type, late_fee_value, late_fee_after_days, business_name, business_email, abn, default_payment_terms, reminder_tone")
+      .select("late_fee_type, late_fee_value, late_fee_after_days, business_name, business_email, abn, default_payment_terms, reminder_tone, referral_code")
       .eq("user_id", user.id)
       .single();
 
@@ -43,6 +47,12 @@ export default async function SettingsPage() {
         default_payment_terms: data.default_payment_terms ?? "Net 14",
         reminder_tone: (data.reminder_tone as BusinessSettings["reminder_tone"]) ?? "Friendly",
       };
+      referralCode = data.referral_code ?? null;
+    }
+
+    if (referralCode) {
+      const { data: rpcData } = await supabase.rpc("my_referral_count");
+      referralCount = typeof rpcData === "number" ? rpcData : 0;
     }
   }
 
@@ -95,6 +105,12 @@ export default async function SettingsPage() {
             <ReadOnly label="Security" value="Magic-link auth through Supabase." />
             <ReadOnly label="Legal" value="Terms, privacy, and support contact in footer." />
           </Panel>
+
+          {referralCode && (
+            <Panel title="Referrals" body="Share your link. Each friend who signs up counts toward your referrals.">
+              <ReferralShare code={referralCode} referralCount={referralCount} />
+            </Panel>
+          )}
         </div>
       </div>
     </DashboardShell>
