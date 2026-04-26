@@ -1329,6 +1329,100 @@ const MockCashflowCard = () => {
   );
 };
 
+// Glowing, hand-drawn outline that wraps the Sequence left column.
+// - rough bezier loop, two layered strokes (soft outer glow + hot inner)
+// - pathLength draws in once when in view
+// - two offset pulses travel continuously along the path
+// - pointer-events: none so it never eats clicks
+const SequenceOutline = () => {
+  const ref = React.useRef(null);
+  const inView = useInView(ref, { amount: 0.3, once: false });
+
+  const d =
+    "M 24 36 C 16 20 44 8 128 10 C 240 4 360 14 448 8 C 520 4 552 22 552 72 " +
+    "C 556 160 544 260 552 360 C 558 430 548 520 540 600 C 534 660 500 688 420 692 " +
+    "C 300 700 180 694 92 692 C 36 692 12 668 16 600 C 20 488 12 372 20 256 " +
+    "C 22 180 20 104 24 36 Z";
+
+  return (
+    <div
+      ref={ref}
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: "-28px -24px -32px -32px",
+        pointerEvents: "none",
+        zIndex: 0,
+      }}
+    >
+      <svg
+        viewBox="0 0 580 720"
+        preserveAspectRatio="none"
+        width="100%"
+        height="100%"
+        style={{
+          overflow: "visible",
+          filter: inView
+            ? "drop-shadow(0 0 6px rgba(255,75,62,0.45)) drop-shadow(0 0 22px rgba(255,75,62,0.22))"
+            : "drop-shadow(0 0 0 rgba(255,75,62,0))",
+          transition: "filter 600ms var(--ease-out)",
+        }}
+      >
+        {/* faint guide */}
+        <path d={d} fill="none" stroke="rgba(255,75,62,0.08)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+        {/* outer glow */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff4b3e"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={inView ? { pathLength: 1, opacity: 0.3 } : { pathLength: 0.2, opacity: 0.06 }}
+          transition={{ pathLength: { duration: 1.4, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.5 } }}
+        />
+        {/* hot inner */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff6a5a"
+          strokeWidth="1.1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={inView ? { pathLength: 1, opacity: 0.9 } : { pathLength: 0.2, opacity: 0.2 }}
+          transition={{ pathLength: { duration: 1.5, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.6 } }}
+        />
+        {/* traveling pulse A */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ffd5cc"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeDasharray="36 560"
+          initial={{ strokeDashoffset: 0, opacity: 0 }}
+          animate={inView ? { strokeDashoffset: -596, opacity: 0.95 } : { opacity: 0 }}
+          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
+        />
+        {/* traveling pulse B (offset) */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff8a7a"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeDasharray="20 576"
+          initial={{ strokeDashoffset: -298, opacity: 0 }}
+          animate={inView ? { strokeDashoffset: -894, opacity: 0.7 } : { opacity: 0 }}
+          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
+        />
+      </svg>
+    </div>
+  );
+};
+
 const SequenceDeepDive = () => {
   const [step, setStep] = React.useState(2);
   React.useEffect(() => {
@@ -1350,32 +1444,52 @@ const SequenceDeepDive = () => {
         }}
         className="seq-grid"
       >
-        <div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#ff7468", letterSpacing: 1, marginBottom: 14 }}>
+        <div style={{ position: "relative" }}>
+          <SequenceOutline />
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#ff7468", letterSpacing: 1, marginBottom: 14, position: "relative" }}>
             THE SEQUENCE
           </div>
-          <h2 style={{ fontSize: "clamp(30px, 3.5vw, 44px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.08, margin: 0, marginBottom: 16 }}>
+          <h2 style={{ fontSize: "clamp(30px, 3.5vw, 44px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.08, margin: 0, marginBottom: 16, position: "relative" }}>
             Friendly first. Firmer later.
           </h2>
-          <p style={{ fontSize: 15.5, color: "var(--ash)", lineHeight: 1.6, margin: 0, marginBottom: 26, letterSpacing: "-0.005em" }}>
+          <p style={{ fontSize: 15.5, color: "var(--ash)", lineHeight: 1.6, margin: 0, marginBottom: 26, letterSpacing: "-0.005em", position: "relative" }}>
             Redline&apos;s default escalation is calibrated on hundreds of real invoice threads.
             You can override any step, pause the sequence with one tap, or write your own voice.
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, position: "relative" }}>
             {[
               { k: "Tone control", v: "Pick how you want to sound — warm, neutral, or strictly business. Per client or global." },
               { k: "Pause anytime", v: "Client asked for time? Pause the thread for X days with a single click. No awkward manual emails." },
               { k: "Late fees, your way", v: "Set a flat fee or %. Redline applies and notifies exactly per your terms." },
-            ].map((f) => (
-              <div key={f.k} style={{ display: "flex", gap: 12, padding: "12px 14px", border: "1px solid var(--hair)", borderRadius: 10, background: "rgba(22,24,31,0.4)" }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,75,62,0.12)", color: "#ff7468", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            ].map((f, i) => (
+              <motion.div
+                key={f.k}
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.6 }}
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="seq-feature-row"
+                style={{ display: "flex", gap: 12, padding: "12px 14px", border: "1px solid var(--hair)", borderRadius: 10, background: "rgba(22,24,31,0.4)", transition: "border-color 320ms var(--ease-out), box-shadow 320ms var(--ease-out), background 320ms var(--ease-out)" }}
+              >
+                <motion.div
+                  className="seq-check"
+                  animate={{
+                    boxShadow: [
+                      "0 0 0 0 rgba(255,75,62,0)",
+                      "0 0 14px 2px rgba(255,75,62,0.38)",
+                      "0 0 0 0 rgba(255,75,62,0)",
+                    ],
+                  }}
+                  transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.45, ease: "easeInOut" }}
+                  style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,75,62,0.12)", color: "#ff7468", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                >
                   <Icon.check s={14} />
-                </div>
+                </motion.div>
                 <div>
                   <div style={{ fontSize: 13.5, fontWeight: 500, letterSpacing: "-0.01em", marginBottom: 2 }}>{f.k}</div>
                   <div style={{ fontSize: 12.5, color: "var(--ash)", lineHeight: 1.5 }}>{f.v}</div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
