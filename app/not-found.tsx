@@ -19,7 +19,7 @@ export default async function NotFound() {
       <div className="max-w-md text-center">
         <h1 className="text-5xl font-bold text-stone-100 mb-4">Lost thread.</h1>
         <p className="text-lg text-stone-400 mb-8">
-          The page you asked for isn't here.
+          The page you asked for isn&apos;t here.
         </p>
         <Link
           href={href}
