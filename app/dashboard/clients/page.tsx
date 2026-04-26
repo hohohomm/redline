@@ -106,7 +106,10 @@ export default async function ClientsPage() {
             {clientRows.map((client) => (
               <tr key={client.email}>
                 <td style={bodyCell}>
-                  <Link href={`/dashboard/invoices/${client.latestInvoiceId}`} style={{ color: "var(--warm-white)" }}>
+                  <Link
+                    href={`/dashboard/clients/${encodeURIComponent(client.email)}`}
+                    style={{ color: "var(--warm-white)", textDecoration: "none" }}
+                  >
                     {client.name}
                   </Link>
                   <div style={{ color: "var(--ash)", fontSize: 11, marginTop: 2 }}>{client.email}</div>
