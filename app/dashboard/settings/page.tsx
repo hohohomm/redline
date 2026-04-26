@@ -1,5 +1,6 @@
 import { DashboardShell } from "@/components/redline-prototype";
 import { SettingsForm } from "@/components/settings-form";
+import { BusinessSettingsForm, type BusinessSettings } from "@/components/business-settings-form";
 import { createClient } from "@/lib/supabase/server";
 import type { LateFeeType } from "@/lib/late-fee";
 
@@ -14,18 +15,33 @@ export default async function SettingsPage() {
     late_fee_after_days: 21,
   };
 
+  let business: BusinessSettings = {
+    business_name: null,
+    business_email: null,
+    abn: null,
+    default_payment_terms: "Net 14",
+    reminder_tone: "Friendly",
+  };
+
   if (user) {
     const { data } = await supabase
       .from("user_settings")
-      .select("late_fee_type, late_fee_value, late_fee_after_days")
+      .select("late_fee_type, late_fee_value, late_fee_after_days, business_name, business_email, abn, default_payment_terms, reminder_tone")
       .eq("user_id", user.id)
       .single();
 
     if (data) {
       settings = {
-        late_fee_type: data.late_fee_type as LateFeeType,
-        late_fee_value: Number(data.late_fee_value),
-        late_fee_after_days: Number(data.late_fee_after_days),
+        late_fee_type: (data.late_fee_type as LateFeeType) ?? "percent",
+        late_fee_value: Number(data.late_fee_value ?? 5),
+        late_fee_after_days: Number(data.late_fee_after_days ?? 21),
+      };
+      business = {
+        business_name: data.business_name ?? null,
+        business_email: data.business_email ?? null,
+        abn: data.abn ?? null,
+        default_payment_terms: data.default_payment_terms ?? "Net 14",
+        reminder_tone: (data.reminder_tone as BusinessSettings["reminder_tone"]) ?? "Friendly",
       };
     }
   }
@@ -41,6 +57,10 @@ export default async function SettingsPage() {
         </div>
 
         <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 14 }}>
+          <Panel title="Business" body="Identity used on invoice PDFs and as the sender display name.">
+            <BusinessSettingsForm initial={business} />
+          </Panel>
+
           <Panel title="Late-fee rules" body="This is live. It feeds reminder escalation when invoices stay unpaid.">
             <SettingsForm initialSettings={settings} />
           </Panel>
