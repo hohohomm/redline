@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { motion, useInView, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 
 
 
@@ -1200,7 +1200,7 @@ const HowItWorks = () => {
             HOW IT WORKS
           </div>
           <h2 style={{ fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05, margin: 0, marginBottom: 16 }}>
-            Three steps. No chasing.
+            Three steps. No <RailUnderline>chasing</RailUnderline>.
           </h2>
           <p style={{ fontSize: 16, color: "var(--ash)", lineHeight: 1.55, margin: 0, letterSpacing: "-0.01em" }}>
             You do the work. Redline handles the awkward part — getting paid for it.
@@ -1333,12 +1333,36 @@ const MockCashflowCard = () => {
 // Follows the container bounds (via percentage viewBox + preserveAspectRatio="none").
 // Two strokes (outer glow + hot inner) draw in on scroll into view; two dashed
 // pulses travel along the perimeter continuously.
+// Rounded-rect outline that draws as the user's scroll advances past the
+// Sequence section. pathLength is driven by scrollYProgress of the parent
+// section (not a one-shot inView), so the trace is physically tied to the
+// reader's finger on the page. Pulses run only while the section is the
+// visual focus, then quiet down.
 const SequenceOutline = () => {
   const ref = React.useRef(null);
-  const inView = useInView(ref, { amount: 0.3, once: false });
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 85%", "end 40%"],
+  });
+  const smooth = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 26,
+    mass: 0.2,
+  });
+  // Focus window: pulses + glow are brightest while the section is actively
+  // being traced, then ease off so they don't compete with Pricing below.
+  const focus = useTransform(scrollYProgress, [0.15, 0.45, 0.85, 1], [0, 1, 1, 0.2]);
+  const glowFilter = useTransform(
+    focus,
+    (v) =>
+      `drop-shadow(0 0 ${6 * v}px rgba(255,75,62,${0.45 * v})) drop-shadow(0 0 ${22 * v}px rgba(255,75,62,${0.22 * v}))`,
+  );
+  const outerOpacity = useTransform(focus, [0, 1], [0.04, 0.28]);
+  const innerOpacity = useTransform(focus, [0, 1], [0.2, 0.95]);
+  const pulseAOpacity = useTransform(focus, [0, 1], [0, 0.95]);
+  const pulseBOpacity = useTransform(focus, [0, 1], [0, 0.7]);
 
-  // 200x200 viewBox, rounded rect with inset so stroke doesn't clip.
-  // rx/ry = 16 relative to 200 → matches radius of feature rows + panel.
+  // rx/ry = 10 in 200-unit viewBox — matches radius of feature rows + panel.
   const rx = 10;
   const inset = 3;
   const w = 200 - inset * 2;
@@ -1356,18 +1380,12 @@ const SequenceOutline = () => {
         zIndex: 0,
       }}
     >
-      <svg
+      <motion.svg
         viewBox="0 0 200 200"
         preserveAspectRatio="none"
         width="100%"
         height="100%"
-        style={{
-          overflow: "visible",
-          filter: inView
-            ? "drop-shadow(0 0 6px rgba(255,75,62,0.45)) drop-shadow(0 0 22px rgba(255,75,62,0.22))"
-            : "drop-shadow(0 0 0 rgba(255,75,62,0))",
-          transition: "filter 600ms var(--ease-out)",
-        }}
+        style={{ overflow: "visible", filter: glowFilter }}
       >
         <path d={d} fill="none" stroke="rgba(255,75,62,0.08)" strokeWidth="0.4" vectorEffect="non-scaling-stroke" />
         <motion.path
@@ -1378,9 +1396,7 @@ const SequenceOutline = () => {
           strokeLinecap="round"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={inView ? { pathLength: 1, opacity: 0.28 } : { pathLength: 0.2, opacity: 0.06 }}
-          transition={{ pathLength: { duration: 1.4, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.5 } }}
+          style={{ pathLength: smooth, opacity: outerOpacity }}
         />
         <motion.path
           d={d}
@@ -1390,10 +1406,9 @@ const SequenceOutline = () => {
           strokeLinecap="round"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={inView ? { pathLength: 1, opacity: 0.9 } : { pathLength: 0.2, opacity: 0.2 }}
-          transition={{ pathLength: { duration: 1.5, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.6 } }}
+          style={{ pathLength: smooth, opacity: innerOpacity }}
         />
+        {/* lead pulse — only visible while focused */}
         <motion.path
           d={d}
           fill="none"
@@ -1403,9 +1418,10 @@ const SequenceOutline = () => {
           vectorEffect="non-scaling-stroke"
           pathLength={1}
           strokeDasharray="0.1 0.9"
-          initial={{ strokeDashoffset: 0, opacity: 0 }}
-          animate={inView ? { strokeDashoffset: -1, opacity: 0.95 } : { opacity: 0 }}
-          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
+          initial={{ strokeDashoffset: 0 }}
+          animate={{ strokeDashoffset: -1 }}
+          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" } }}
+          style={{ opacity: pulseAOpacity }}
         />
         <motion.path
           d={d}
@@ -1416,29 +1432,44 @@ const SequenceOutline = () => {
           vectorEffect="non-scaling-stroke"
           pathLength={1}
           strokeDasharray="0.05 0.95"
-          initial={{ strokeDashoffset: -0.5, opacity: 0 }}
-          animate={inView ? { strokeDashoffset: -1.5, opacity: 0.7 } : { opacity: 0 }}
-          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
+          initial={{ strokeDashoffset: -0.5 }}
+          animate={{ strokeDashoffset: -1.5 }}
+          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" } }}
+          style={{ opacity: pulseBOpacity }}
         />
-      </svg>
+      </motion.svg>
     </div>
   );
 };
 
-// "The Thread" — one quiet vertical rail, drawn by scroll.
-// Ghost spine is always faintly visible (the path ahead). The active stroke
-// draws from 0→scrollYProgress, spring-smoothed. At 6 station Y-positions,
-// a short perpendicular tick extends left into the page as the active stroke
-// passes — a silent handshake between rail and content. No circles, no
-// time-looped pulses: every pixel of motion is caused by the user's scroll.
+// "The Narrator" — a scroll-driven thread that reads the page with the user.
+//
+//   1. Spine fades in below the hero and descends the right margin.
+//   2. Inside HowItWorks, RailUnderline draws a glowing stroke under the
+//      word "chasing" as its own scroll window opens.
+//   3. Inside SequenceDeepDive, SequenceOutline's rounded-rect is drawn by
+//      the user's scroll position, not by a one-shot inView flag.
+//
+// Each interaction is self-contained (owns its own useScroll target). Content
+// reveals settle before the interaction window opens, so the user perceives a
+// natural pause-then-flourish rhythm without any scroll hijacking.
 const LandingRail = () => {
   const { scrollYProgress } = useScroll();
   const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.25 });
 
-  // 100x1000 viewBox, preserveAspectRatio=none: x reads as %viewport, y as %document.
-  // Non-scaling-stroke keeps widths in screen units.
+  // 100x1000 viewBox, preserveAspectRatio=none: x reads as %viewport, y as
+  // %document. Spine starts at y=80 (below hero) and ends before footer.
   const spineX = 92;
-  const stations = [0.08, 0.22, 0.38, 0.55, 0.72, 0.88];
+  const yStart = 80;
+  const yEnd = 950;
+
+  // Spine only fills in once scroll leaves the hero, and softens before the
+  // footer so it never fights the final CTA.
+  const opacity = useTransform(
+    smooth,
+    [0.04, 0.08, 0.93, 1.0],
+    [0, 1, 1, 0.35]
+  );
 
   return (
     <div
@@ -1459,22 +1490,22 @@ const LandingRail = () => {
         preserveAspectRatio="none"
         style={{ overflow: "visible" }}
       >
-        {/* ghost spine — the path ahead, always faintly visible */}
+        {/* ghost spine — the path ahead */}
         <line
           x1={spineX}
-          y1={0}
+          y1={yStart}
           x2={spineX}
-          y2={1000}
-          stroke="rgba(255,75,62,0.08)"
+          y2={yEnd}
+          stroke="rgba(255,75,62,0.07)"
           strokeWidth="1"
           vectorEffect="non-scaling-stroke"
         />
-        {/* active outer glow, scroll-drawn */}
+        {/* active outer glow */}
         <motion.line
           x1={spineX}
-          y1={0}
+          y1={yStart}
           x2={spineX}
-          y2={1000}
+          y2={yEnd}
           stroke="#ff4b3e"
           strokeWidth="5"
           strokeLinecap="round"
@@ -1483,52 +1514,64 @@ const LandingRail = () => {
             pathLength: smooth,
             filter:
               "drop-shadow(0 0 8px rgba(255,75,62,0.7)) drop-shadow(0 0 26px rgba(255,75,62,0.35))",
-            opacity: 0.42,
+            opacity,
           }}
         />
-        {/* active inner core, scroll-drawn */}
+        {/* active inner core */}
         <motion.line
           x1={spineX}
-          y1={0}
+          y1={yStart}
           x2={spineX}
-          y2={1000}
+          y2={yEnd}
           stroke="#ff9080"
           strokeWidth="1.5"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          style={{ pathLength: smooth, opacity: 1 }}
+          style={{ pathLength: smooth, opacity }}
         />
-        {/* stations: short perpendicular ticks that draw left as rail passes */}
-        {stations.map((t) => (
-          <RailStation key={t} t={t} spineX={spineX} smooth={smooth} />
-        ))}
       </svg>
     </div>
   );
 };
 
-const RailStation = ({ t, spineX, smooth }) => {
-  const y = t * 1000;
-  // Draw in across a narrow scroll window around this station.
-  const draw = useTransform(smooth, [t - 0.008, t + 0.02], [0, 1]);
-  const opacity = useTransform(smooth, [t - 0.008, t + 0.02, t + 0.08], [0, 1, 0.55]);
-  const reach = 4;
+// A word with a glowing underline that draws as the word scrolls into view.
+// Used inside a heading; behaves like a narrator's emphasis mark.
+const RailUnderline = ({ children }) => {
+  const ref = React.useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 78%", "start 42%"],
+  });
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 28, mass: 0.2 });
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 1], [0, 1, 1]);
   return (
-    <motion.line
-      x1={spineX}
-      y1={y}
-      x2={spineX - reach}
-      y2={y}
-      stroke="#ff6a5a"
-      strokeWidth="2"
-      strokeLinecap="round"
-      vectorEffect="non-scaling-stroke"
+    <span
+      ref={ref}
       style={{
-        pathLength: draw,
-        opacity,
-        filter: "drop-shadow(0 0 6px rgba(255,75,62,0.6))",
+        position: "relative",
+        display: "inline-block",
+        whiteSpace: "nowrap",
       }}
-    />
+    >
+      {children}
+      <motion.span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: "-0.08em",
+          height: 3,
+          background: "linear-gradient(90deg, rgba(255,75,62,0) 0%, #ff4b3e 12%, #ff9080 50%, #ff4b3e 88%, rgba(255,75,62,0) 100%)",
+          borderRadius: 2,
+          transformOrigin: "left center",
+          scaleX,
+          opacity,
+          filter: "drop-shadow(0 0 6px rgba(255,75,62,0.55)) drop-shadow(0 0 16px rgba(255,75,62,0.3))",
+          pointerEvents: "none",
+        }}
+      />
+    </span>
   );
 };
 
