@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useScroll, useSpring, useTransform } from "framer-motion";
 
 
 
@@ -1329,20 +1329,21 @@ const MockCashflowCard = () => {
   );
 };
 
-// Glowing, hand-drawn outline that wraps the Sequence left column.
-// - rough bezier loop, two layered strokes (soft outer glow + hot inner)
-// - pathLength draws in once when in view
-// - two offset pulses travel continuously along the path
-// - pointer-events: none so it never eats clicks
+// Clean rounded-rect outline that hugs the Sequence left column.
+// Follows the container bounds (via percentage viewBox + preserveAspectRatio="none").
+// Two strokes (outer glow + hot inner) draw in on scroll into view; two dashed
+// pulses travel along the perimeter continuously.
 const SequenceOutline = () => {
   const ref = React.useRef(null);
   const inView = useInView(ref, { amount: 0.3, once: false });
 
-  const d =
-    "M 24 36 C 16 20 44 8 128 10 C 240 4 360 14 448 8 C 520 4 552 22 552 72 " +
-    "C 556 160 544 260 552 360 C 558 430 548 520 540 600 C 534 660 500 688 420 692 " +
-    "C 300 700 180 694 92 692 C 36 692 12 668 16 600 C 20 488 12 372 20 256 " +
-    "C 22 180 20 104 24 36 Z";
+  // 200x200 viewBox, rounded rect with inset so stroke doesn't clip.
+  // rx/ry = 16 relative to 200 → matches radius of feature rows + panel.
+  const rx = 10;
+  const inset = 3;
+  const w = 200 - inset * 2;
+  const h = 200 - inset * 2;
+  const d = `M ${inset + rx} ${inset} h ${w - rx * 2} a ${rx} ${rx} 0 0 1 ${rx} ${rx} v ${h - rx * 2} a ${rx} ${rx} 0 0 1 ${-rx} ${rx} h ${-(w - rx * 2)} a ${rx} ${rx} 0 0 1 ${-rx} ${-rx} v ${-(h - rx * 2)} a ${rx} ${rx} 0 0 1 ${rx} ${-rx} Z`;
 
   return (
     <div
@@ -1350,13 +1351,13 @@ const SequenceOutline = () => {
       aria-hidden="true"
       style={{
         position: "absolute",
-        inset: "-28px -24px -32px -32px",
+        inset: "-18px -18px -18px -18px",
         pointerEvents: "none",
         zIndex: 0,
       }}
     >
       <svg
-        viewBox="0 0 580 720"
+        viewBox="0 0 200 200"
         preserveAspectRatio="none"
         width="100%"
         height="100%"
@@ -1368,21 +1369,19 @@ const SequenceOutline = () => {
           transition: "filter 600ms var(--ease-out)",
         }}
       >
-        {/* faint guide */}
-        <path d={d} fill="none" stroke="rgba(255,75,62,0.08)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
-        {/* outer glow */}
+        <path d={d} fill="none" stroke="rgba(255,75,62,0.08)" strokeWidth="0.4" vectorEffect="non-scaling-stroke" />
         <motion.path
           d={d}
           fill="none"
           stroke="#ff4b3e"
-          strokeWidth="3.5"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
           initial={{ pathLength: 0, opacity: 0 }}
-          animate={inView ? { pathLength: 1, opacity: 0.3 } : { pathLength: 0.2, opacity: 0.06 }}
+          animate={inView ? { pathLength: 1, opacity: 0.28 } : { pathLength: 0.2, opacity: 0.06 }}
           transition={{ pathLength: { duration: 1.4, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.5 } }}
         />
-        {/* hot inner */}
         <motion.path
           d={d}
           fill="none"
@@ -1390,21 +1389,131 @@ const SequenceOutline = () => {
           strokeWidth="1.1"
           strokeLinecap="round"
           strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={inView ? { pathLength: 1, opacity: 0.9 } : { pathLength: 0.2, opacity: 0.2 }}
           transition={{ pathLength: { duration: 1.5, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.6 } }}
         />
-        {/* traveling pulse A */}
         <motion.path
           d={d}
           fill="none"
           stroke="#ffd5cc"
           strokeWidth="2"
           strokeLinecap="round"
-          strokeDasharray="36 560"
+          vectorEffect="non-scaling-stroke"
+          pathLength={1}
+          strokeDasharray="0.1 0.9"
           initial={{ strokeDashoffset: 0, opacity: 0 }}
-          animate={inView ? { strokeDashoffset: -596, opacity: 0.95 } : { opacity: 0 }}
+          animate={inView ? { strokeDashoffset: -1, opacity: 0.95 } : { opacity: 0 }}
           transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
+        />
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff8a7a"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          pathLength={1}
+          strokeDasharray="0.05 0.95"
+          initial={{ strokeDashoffset: -0.5, opacity: 0 }}
+          animate={inView ? { strokeDashoffset: -1.5, opacity: 0.7 } : { opacity: 0 }}
+          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
+        />
+      </svg>
+    </div>
+  );
+};
+
+// Single continuous rail that spans the whole landing.
+// A fixed-viewport SVG draws a vertical path whose pathLength follows window
+// scroll progress. A small handful of anchor nodes (aligned roughly with section
+// mid-heights) light up as the drawn length passes them, and two offset pulses
+// travel the full path continuously.
+const LandingRail = () => {
+  const { scrollYProgress } = useScroll();
+  // Smooth the scroll so the draw doesn't jitter frame-to-frame.
+  const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.25 });
+
+  // Vertical path with gentle horizontal wobbles. Designed in a 100x1000 viewBox
+  // (preserveAspectRatio="none") so horizontal coords read as % of viewport and
+  // vertical as % of document. Stroke stays 1-unit thanks to non-scaling-stroke.
+  const d =
+    "M 92 0 C 92 70 88 120 80 180 " +
+    "C 70 240 20 260 18 320 " +
+    "C 16 380 70 410 76 470 " +
+    "C 82 530 20 560 18 620 " +
+    "C 16 680 70 710 76 770 " +
+    "C 82 830 60 880 50 1000";
+
+  // Rough Y positions of section midpoints on the path (0-1 normalized).
+  const anchors = [0.08, 0.22, 0.38, 0.55, 0.72, 0.88];
+
+  return (
+    <div
+      aria-hidden="true"
+      className="landing-rail"
+      style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        zIndex: 0,
+        overflow: "hidden",
+      }}
+    >
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 100 1000"
+        preserveAspectRatio="none"
+        style={{ overflow: "visible" }}
+      >
+        {/* faint guide */}
+        <path
+          d={d}
+          fill="none"
+          stroke="rgba(255,75,62,0.06)"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        {/* outer glow (scroll-driven draw) */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff4b3e"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          style={{
+            pathLength: smooth,
+            filter: "drop-shadow(0 0 4px rgba(255,75,62,0.55)) drop-shadow(0 0 18px rgba(255,75,62,0.25))",
+            opacity: 0.32,
+          }}
+        />
+        {/* hot inner (scroll-driven draw) */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ff6a5a"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          style={{ pathLength: smooth, opacity: 0.95 }}
+        />
+        {/* traveling pulse A */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="#ffd5cc"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          pathLength={1}
+          strokeDasharray="0.04 0.96"
+          initial={{ strokeDashoffset: 0, opacity: 0 }}
+          animate={{ strokeDashoffset: -1, opacity: 0.95 }}
+          transition={{ strokeDashoffset: { duration: 7.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
         />
         {/* traveling pulse B (offset) */}
         <motion.path
@@ -1413,13 +1522,60 @@ const SequenceOutline = () => {
           stroke="#ff8a7a"
           strokeWidth="1.6"
           strokeLinecap="round"
-          strokeDasharray="20 576"
-          initial={{ strokeDashoffset: -298, opacity: 0 }}
-          animate={inView ? { strokeDashoffset: -894, opacity: 0.7 } : { opacity: 0 }}
-          transition={{ strokeDashoffset: { duration: 4.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
+          vectorEffect="non-scaling-stroke"
+          pathLength={1}
+          strokeDasharray="0.02 0.98"
+          initial={{ strokeDashoffset: -0.5, opacity: 0 }}
+          animate={{ strokeDashoffset: -1.5, opacity: 0.7 }}
+          transition={{ strokeDashoffset: { duration: 7.2, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.6 } }}
         />
+        {/* anchor nodes */}
+        {anchors.map((t, i) => (
+          <RailAnchor key={i} t={t} smooth={smooth} />
+        ))}
       </svg>
     </div>
+  );
+};
+
+const RailAnchor = ({ t, smooth }) => {
+  // "Lit" when the drawn pathLength passes this anchor's position.
+  const lit = useTransform(smooth, (v) => (v > t ? 1 : 0));
+  const scale = useTransform(lit, [0, 1], [0.55, 1]);
+  const haloOpacity = useTransform(lit, [0, 1], [0, 0.55]);
+
+  // Approx position on path in the 100x1000 viewBox: alternate left/right at
+  // each anchor to match the path kinks.
+  const positions = {
+    0.08: { x: 92, y: 80 },
+    0.22: { x: 78, y: 220 },
+    0.38: { x: 22, y: 380 },
+    0.55: { x: 78, y: 550 },
+    0.72: { x: 22, y: 720 },
+    0.88: { x: 64, y: 880 },
+  };
+  const pos = positions[t] ?? { x: 50, y: t * 1000 };
+
+  return (
+    <g>
+      <motion.circle
+        cx={pos.x}
+        cy={pos.y}
+        r="6"
+        fill="none"
+        stroke="rgba(255,75,62,0.55)"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+        style={{ scale, opacity: haloOpacity, transformOrigin: `${pos.x}px ${pos.y}px` }}
+      />
+      <motion.circle
+        cx={pos.x}
+        cy={pos.y}
+        r="2.4"
+        fill="#ff4b3e"
+        style={{ scale, transformOrigin: `${pos.x}px ${pos.y}px` }}
+      />
+    </g>
   );
 };
 
@@ -1755,135 +1911,17 @@ const LandingFooter = () => (
   </footer>
 );
 
-// Glowing red rail — segment that sits BETWEEN sections.
-// Vertical pipe with a single bezier kink and a glowing node.
-// Path draws + node ignites when the segment scrolls into view.
-// Replaces the old fixed-overlay ScrollLine.
-const SectionRail = ({ label, side = "center" }) => {
-  const ref = React.useRef(null);
-  const inView = useInView(ref, { amount: 0.6, once: false });
-
-  const offsetX = side === "left" ? 14 : side === "right" ? 46 : 30;
-
-  // Subtle bezier kink toward the requested side
-  const d =
-    side === "left"
-      ? "M 30 0 C 30 28, 14 50, 14 72 C 14 92, 30 110, 30 120"
-      : side === "right"
-        ? "M 30 0 C 30 28, 46 50, 46 72 C 46 92, 30 110, 30 120"
-        : "M 30 0 C 30 30, 30 60, 30 90 L 30 120";
-
-  return (
-    <div
-      ref={ref}
-      aria-hidden="true"
-      style={{
-        position: "relative",
-        height: 132,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "stretch",
-        pointerEvents: "none",
-      }}
-    >
-      <svg
-        width="60"
-        height="132"
-        viewBox="0 0 60 132"
-        style={{
-          overflow: "visible",
-          filter: inView
-            ? "drop-shadow(0 0 6px rgba(255,75,62,0.55)) drop-shadow(0 0 24px rgba(255,75,62,0.25))"
-            : "drop-shadow(0 0 0 rgba(255,75,62,0))",
-          transition: "filter 600ms var(--ease-out)",
-        }}
-      >
-        {/* faint guide rail */}
-        <path
-          d={d}
-          fill="none"
-          stroke="rgba(255,75,62,0.08)"
-          strokeWidth="1"
-          strokeLinecap="round"
-        />
-        {/* outer glow trace */}
-        <motion.path
-          d={d}
-          fill="none"
-          stroke="#ff4b3e"
-          strokeWidth="5"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={inView ? { pathLength: 1, opacity: 0.28 } : { pathLength: 0.15, opacity: 0.06 }}
-          transition={{ pathLength: { duration: 1.1, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.4 } }}
-        />
-        {/* hot inner stroke */}
-        <motion.path
-          d={d}
-          fill="none"
-          stroke="#ff6a5a"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={inView ? { pathLength: 1, opacity: 1 } : { pathLength: 0.15, opacity: 0.25 }}
-          transition={{ pathLength: { duration: 1.2, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.5 } }}
-        />
-        {/* central node — pulses when active */}
-        <motion.circle
-          cx={offsetX}
-          cy="62"
-          r="3.2"
-          fill="#ff4b3e"
-          initial={{ scale: 0.4, opacity: 0 }}
-          animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.55, opacity: 0.35 }}
-          transition={{ duration: 0.55, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        />
-        {/* node halo */}
-        <motion.circle
-          cx={offsetX}
-          cy="62"
-          r="9"
-          fill="none"
-          stroke="rgba(255,75,62,0.45)"
-          strokeWidth="0.6"
-          initial={{ scale: 0.4, opacity: 0 }}
-          animate={inView ? { scale: [0.6, 1.4, 1], opacity: [0, 0.7, 0.35] } : { scale: 0.6, opacity: 0 }}
-          transition={{ duration: 1.4, delay: 0.4, repeat: inView ? Infinity : 0, repeatDelay: 1.6 }}
-        />
-        {label && (
-          <text
-            x={offsetX + 14}
-            y="65"
-            fill={inView ? "rgba(255,106,90,0.85)" : "rgba(255,75,62,0.35)"}
-            fontSize="9"
-            fontFamily="var(--font-mono, monospace)"
-            letterSpacing="0.18em"
-            style={{ transition: "fill 500ms var(--ease-out)" }}
-          >
-            {label}
-          </text>
-        )}
-      </svg>
-    </div>
-  );
-};
-
 const LandingPage = ({ onNav }) => {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--graphite-900)", color: "var(--warm-white)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--graphite-900)", color: "var(--warm-white)", position: "relative" }}>
+      <LandingRail />
       <LandingNav onNav={onNav} />
       <HeroSection onNav={onNav} />
-      <SectionRail label="01" side="left" />
       <BenefitsStrip />
-      <SectionRail label="02" side="right" />
       <HowItWorks />
-      <SectionRail label="03" side="left" />
       <SequenceDeepDive />
-      <SectionRail label="04" side="right" />
       <PricingSection onNav={onNav} />
-      <SectionRail label="05" side="left" />
       <FaqSection />
-      <SectionRail label="06" side="center" />
       <FinalCta onNav={onNav} />
       <LandingFooter />
     </div>

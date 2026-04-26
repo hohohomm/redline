@@ -230,6 +230,16 @@ a {
   .text-balance { text-wrap: balance; }
 }
 
+/* Landing rail sits at zIndex 0 behind content. Every direct section needs to
+   paint above it. Targets the landing shell so content stays readable. */
+.landing-rail + nav,
+.landing-rail ~ section,
+.landing-rail ~ footer,
+.landing-rail ~ nav {
+  position: relative;
+  z-index: 1;
+}
+
 .seq-feature-row {
   will-change: transform, box-shadow, border-color;
 }
