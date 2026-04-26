@@ -27,11 +27,17 @@ alter table user_settings
 
 ```sql
 SELECT column_name FROM information_schema.columns 
-WHERE table_name='user_settings' 
+WHERE table_schema = 'public'
+AND table_name = 'user_settings' 
 AND column_name IN ('business_name','business_email','abn','default_payment_terms','reminder_tone');
 ```
 
 Expect 5 rows (one per column).
+
+**If 0 rows**:
+1. Confirm correct Supabase project is selected (top-left selector in dashboard).
+2. Sanity-check the table exists: `SELECT 1 FROM public.user_settings LIMIT 1;` — error means wrong project or table missing.
+3. List actual columns: `SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='user_settings' ORDER BY ordinal_position;`
 
 ---
 
@@ -113,7 +119,23 @@ grant execute on function my_referral_count() to authenticated;
 
 ```sql
 SELECT proname FROM pg_proc 
-WHERE proname IN ('my_referral_code','ensure_referral_code');
+WHERE proname IN ('my_referral_count','ensure_referral_code');
 ```
 
-Expect 2 rows (one per function). Note: `my_referral_count` appears as `my_referral_count`, `ensure_referral_code` as trigger function.
+Expect 2 rows: `ensure_referral_code` (trigger fn) + `my_referral_count` (SECURITY DEFINER fn).
+
+**Also verify column + trigger**:
+
+```sql
+SELECT column_name FROM information_schema.columns 
+WHERE table_schema='public' AND table_name='user_settings' 
+AND column_name IN ('referral_code','referred_by');
+
+SELECT tgname FROM pg_trigger WHERE tgname = 'user_settings_referral_code';
+```
+
+Expect 2 column rows + 1 trigger row.
+
+**If 0 rows on function query**:
+1. Confirm correct Supabase project.
+2. Check schema: `SELECT n.nspname, p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.proname LIKE '%referral%';`
