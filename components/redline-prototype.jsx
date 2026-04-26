@@ -2090,6 +2090,7 @@ const DashboardShell = ({ route, onNav, children }) => {
     clients: "/dashboard/clients",
     sequences: "/dashboard/sequences",
     cashflow: "/dashboard/cashflow",
+    activity: "/dashboard/activity",
     settings: "/dashboard/settings",
   };
 
@@ -2165,6 +2166,7 @@ const DashboardShell = ({ route, onNav, children }) => {
           <NavItem id="clients" icon={<Icon.user s={14} />} label="Clients" active={route === "clients"} />
           <NavItem id="sequences" icon={<Icon.bell s={14} />} label="Sequences" active={route === "sequences"} />
           <NavItem id="cashflow" icon={<Icon.trend s={14} />} label="Cashflow" active={route === "cashflow"} />
+          <NavItem id="activity" icon={<Icon.bell s={14} />} label="Activity" active={route === "activity"} />
         </div>
 
         <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
